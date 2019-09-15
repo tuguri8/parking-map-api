@@ -1,0 +1,78 @@
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    database: h2
+    showSql: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate.dialect: org.hibernate.dialect.H2Dialect
+      hibernate.format_sql: true
+      hibernate.use_sql_comments: true
+
+  datasource:
+    platform: h2
+    url: jdbc:h2:mem:pmap;DB_CLOSE_ON_EXIT=FALSE;MODE=MYSQL
+    username: sa
+    password:
+    initialization-mode: EMBEDDED
+
+    hikari:
+      maximum-pool-size: 200
+      connection-timeout: 2000
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+
+# feign
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 20000
+        readTimeout: 20000
+        loggerLevel: basic
+
+ribbon:
+  eureka:
+    enabled: false
+
+seoul-sw-openapi:
+  key: '{cipher}50b3fcd69c200d2650a7972c5f8c049312a24dc57eadeff595bca51627c2141772663d0d1537742c617ef4bb8eb6c12e'
+  ribbon:
+    listOfServers: swopenapi.seoul.go.kr
+    MaxAutoRetries: 5
+
+seoul-openapi:
+  key: '{cipher}c8df9349e540bb4d979edcdfb7f9ad6484d46c5181e799fe83f88063bb943e19affb2a1d70a85b35df949997e8500d82'
+  ribbon:
+    listOfServers: openapi.seoul.go.kr:8088
+    MaxAutoRetries: 5
+
+tmoney-openapi:
+  key: '{cipher}4e8080087c764ea537c514424e7e226b80ef169b075031c0c86bcc468202b560c89e52ff7b08115ded965efe3d50c952f5545d6cc9c7ececdbe0e47d08f9062e'
+  ribbon:
+    IsSecure: true
+    listOfServers: gateway.openapi.t-money.co.kr:5556
+    MaxAutoRetries: 5
+
+naver-maps:
+  id: '{cipher}a113ad1ea3d4b87f1aae30928a50dc244cf98f66a83647d8f084d6cd531d0eef'
+  secret: '{cipher}134c625bbdc3f894c2ad3a7becd162013777a7e2a515c72ba4a10adb7970bda89ec556afefef0f8ab151813a3dc1761746297e809d9dcbf26d546b1c23e0553c'
+  ribbon:
+    IsSecure: true
+    MaxAutoRetries: 5
+
+odsay:
+  key: '{cipher}ae078e0e2a988e413fd787b6b18c5dd50d8c5f23f152d1ccfeb609330b9a1de975e745d4de8b68ee4e1c1e52fb33ec4f15404a585f5fd1b84e1137c42d891a9b'
+  ribbon:
+    IsSecure: false
+    MaxAutoRetries: 5
+
+openweathermap:
+  key: '{cipher}abd9283410a595c57c1f70e4916010c10ebf63a8af7b677140f7bde17d1c17dce0cabb3a03d26d590c82a4de432eee2feb4118e7c5ba87231b17bc5ad98c3404'
+  ribbon:
+    MaxAutoRetries: 5

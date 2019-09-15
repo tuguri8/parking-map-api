@@ -14,9 +14,10 @@ import com.bamplee.chomi.api.datatool.openweathermap.dto.ForecastResponse;
 import com.bamplee.chomi.api.datatool.seoul.SeoulOpenApiClient;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.BikeParkingInfo;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
+import com.bamplee.chomi.api.interfaces.place.dto.response.V2RouteResponse;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -49,23 +50,25 @@ public class RouteServiceImpl implements RouteService {
     private final OdSayClient odSayClient;
     private final OpenWeatherMapClient openWeatherMapClient;
     private final SeoulOpenApiClient seoulOpenApiClient;
+    private final ModelMapper modelMapper;
 
     public RouteServiceImpl(ParkingSyncService parkingSyncService,
                             BikeParkingSyncService bikeParkingSyncService,
                             NaverMapsClient naverMapsClient,
                             OdSayClient odSayClient,
                             OpenWeatherMapClient openWeatherMapClient,
-                            SeoulOpenApiClient seoulOpenApiClient) {
+                            SeoulOpenApiClient seoulOpenApiClient, ModelMapper modelMapper) {
         this.parkingSyncService = parkingSyncService;
         this.bikeParkingSyncService = bikeParkingSyncService;
         this.naverMapsClient = naverMapsClient;
         this.odSayClient = odSayClient;
         this.openWeatherMapClient = openWeatherMapClient;
         this.seoulOpenApiClient = seoulOpenApiClient;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public RouteResponse route(String departureX, String departureY, String destinationX, String destinationY) {
+    public V2RouteResponse route(String departureX, String departureY, String destinationX, String destinationY) {
         // 대중교통 경로부터 찾기
         OdSaySearchPubTransPathResponse searchPubTransPath = this.getSearchPubTransPath(departureX,
                                                                                         departureY,
@@ -318,7 +321,7 @@ public class RouteServiceImpl implements RouteService {
         if (routeResponse.getForecast() == null) {
             forecast.getList().stream().min((a, b) -> b.getDt() - a.getDt()).ifPresent(routeResponse::setForecast);
         }
-        return routeResponse;
+        return modelMapper.map(routeResponse, V2RouteResponse.class);
     }
 
     private Optional<BikeParkingRouteInfo> getBikeParkingRouteInfo(Double startX, Double startY, Double endX, Double endY) {

@@ -5,6 +5,7 @@ import com.bamplee.chomi.api.application.RouteResponse;
 import com.bamplee.chomi.api.application.RouteService;
 import com.bamplee.chomi.api.datatool.naver.dto.NaverMapsSearchPlacesResponse;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSayLoadLaneResponse;
+import com.bamplee.chomi.api.interfaces.place.dto.response.V2RouteResponse;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +31,7 @@ public class MapController {
     }
 
     @GetMapping("route")
-    public RouteResponse route(@RequestParam("startX") String startX,
+    public V2RouteResponse route(@RequestParam("startX") String startX,
                                @RequestParam("startY") String startY,
                                @RequestParam("endX") String endX,
                                @RequestParam("endY") String endY) {

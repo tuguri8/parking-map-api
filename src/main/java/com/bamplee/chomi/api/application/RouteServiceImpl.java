@@ -244,6 +244,32 @@ public class RouteServiceImpl implements RouteService {
                          })
                          .filter(x -> !(!x.getUseBus() && !x.getUseSubway() && !x.getUseBike() && x.getUseCar()))
                          .filter(RouteResponse.Path::getUseCar)
+                         .peek(x -> {
+                             SubPathInfo subPathInfo = x.getSubPathList().stream()
+                                                        .filter(y -> y.getParkingRouteInfo() != null)
+                                                        .findFirst().get();
+                             RouteResponse.Path.Summary summary = new RouteResponse.Path.Summary();
+                             summary.setAddRates(subPathInfo.getParkingRouteInfo().getParkingInfo().getAddRates());
+                             summary.setAddTimeRate(subPathInfo.getParkingRouteInfo().getParkingInfo().getAddTimeRate());
+                             summary.setCapacity(subPathInfo.getParkingRouteInfo().getParkingInfo().getCapacity());
+                             summary.setCurParking(subPathInfo.getParkingRouteInfo().getParkingInfo().getCurParking());
+                             summary.setParkingName(subPathInfo.getParkingRouteInfo().getParkingInfo().getParkingName());
+                             summary.setPayNm(subPathInfo.getParkingRouteInfo().getParkingInfo().getPayNm());
+
+                             List<RouteResponse.Path.Summary.TimeBar> timeBarList = x.getSubPathList().stream()
+                                                                                     .map(this::calTimeBar)
+                                                                                     .collect(Collectors.toList());
+                             summary.setTimeBarList(timeBarList);
+                             summary.setTotalPrice(x.getInfo().getPayment());
+                             summary.setTotalTime(x.getInfo().getTotalTime());
+
+                             RouteResponse.Path.Detail detail = new RouteResponse.Path.Detail();
+                             detail.setInfo(x.getInfo());
+                             detail.setParkingInfo(subPathInfo.getParkingRouteInfo().getParkingInfo());
+                             detail.setSubPathList(x.getSubPathList());
+                             x.setSummary(summary);
+                             x.setDetail(detail);
+                         })
                          .collect(Collectors.toList());
 //        pathList = Stream.concat(Stream.concat(pathList.stream(), parkingRouteList.stream()), bikeParkingRouteList.stream())
 //                         .filter(Objects::nonNull)
@@ -451,5 +477,19 @@ public class RouteServiceImpl implements RouteService {
     // This function converts radians to decimal degrees
     private static double rad2deg(double rad) {
         return (rad * 180 / Math.PI);
+    }
+
+    private RouteResponse.Path.Summary.TimeBar calTimeBar(SubPathInfo subPathInfo) {
+        RouteResponse.Path.Summary.TimeBar timeBar = new RouteResponse.Path.Summary.TimeBar();
+        if (subPathInfo.getSubPath() == null) {
+            timeBar.setLength(subPathInfo.getParkingRouteInfo().getTotalTime());
+            timeBar.setTime(subPathInfo.getParkingRouteInfo().getTotalTime());
+            timeBar.setTrafficType("CAR");
+        } else {
+            timeBar.setLength(subPathInfo.getSubPath().getSectionTime());
+            timeBar.setTime(subPathInfo.getSubPath().getSectionTime());
+            timeBar.setTrafficType(TrafficType.getTrafficTypeByNum(subPathInfo.getSubPath().getTrafficType()).getTrafficTypeName());
+        }
+        return timeBar;
     }
 }

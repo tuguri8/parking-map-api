@@ -108,7 +108,11 @@ public class RouteServiceImpl implements RouteService {
             for (SubPathInfo originSubPathInfo : x.getSubPathList()) {
                 SubPathInfo subPathInfo = new SubPathInfo();
                 SubPath originSubPath = originSubPathInfo.getSubPath();
-                if (originSubPath.getTrafficType() != 3 && !isChecked && !originSubPath.getStartX().equals(originSubPath.getEndX()) && !originSubPath.getStartY().equals(originSubPath.getEndY())) {
+                if (originSubPath.getTrafficType() != 3 && !isChecked && !originSubPath.getStartX()
+                                                                                       .equals(originSubPath.getEndX()) && !originSubPath.getStartY()
+                                                                                                                                         .equals(
+                                                                                                                                             originSubPath
+                                                                                                                                                 .getEndY())) {
                     Optional<ParkingRouteInfo> parkingRouteInfo = this.getParkingRouteInfo(Double.valueOf(departureX),
                                                                                            Double.valueOf(departureY),
                                                                                            originSubPath.getEndX(),
@@ -164,70 +168,71 @@ public class RouteServiceImpl implements RouteService {
             }
         }).collect(Collectors.toList());
 
-        List<RouteResponse.Path> bikeParkingRouteList = pathList.stream().map(x -> {
-            Boolean isChecked = false;
-            RouteResponse.Path path = new RouteResponse.Path();
-            List<SubPathInfo> tempList = Lists.newArrayList();
-            for (RouteResponse.Path.SubPathInfo originSubPathInfo : x.getSubPathList()) {
-                SubPathInfo subPathInfo = new SubPathInfo();
-                SubPath originSubPath = originSubPathInfo.getSubPath();
-                if (originSubPath.getTrafficType() != 3 && !isChecked && !originSubPath.getStartX().equals(originSubPath.getEndX()) && !originSubPath.getStartY().equals(originSubPath.getEndY())) {
-                    Optional<BikeParkingRouteInfo> bikeParkingRouteInfo = this.getBikeParkingRouteInfo(originSubPath.getStartX(),
-                                                                                                       originSubPath.getStartY(),
-                                                                                                       originSubPath.getEndX(),
-                                                                                                       originSubPath.getEndY());
-                    if (bikeParkingRouteInfo.isPresent()) {
-                        subPathInfo.setBikeParkingRouteInfo(bikeParkingRouteInfo.get());
-                        isChecked = true;
-                    }
-                }
-                subPathInfo.setSubPath(originSubPath);
-                tempList.add(subPathInfo);
-            }
-            if (isChecked) {
-                Integer duration = tempList.stream().map(y -> {
-                    if (y.getBikeParkingRouteInfo() == null) {
-                        return y.getSubPath().getSectionTime();
-                    } else {
-                        if (y.getBikeParkingRouteInfo()
-                             .getSubPathRoute().getCode() == 1) {
-                            return 0;
-                        }
-                        Integer sum = (y.getBikeParkingRouteInfo()
-                                        .getSubPathRoute()
-                                        .getRoute()
-                                        .getOrDefault("traoptimal", Lists.newArrayList())
-                                        .get(0)
-                                        .getSummary().getDuration() / 1000) / 40;
-                        y.getBikeParkingRouteInfo().setTotalTime(sum);
-                        return sum;
-                    }
-                }).reduce((a, b) -> (int) a + (int) b).orElse(0);
-                OdSaySearchPubTransPathResponse.Result.Info info = new OdSaySearchPubTransPathResponse.Result.Info();
-                info.setTotalStationCount(x.getInfo().getTotalStationCount());
-                info.setBusStationCount(x.getInfo().getBusStationCount());
-                info.setBusTransitCount(x.getInfo().getBusTransitCount());
-                info.setSubwayStationCount(x.getInfo().getSubwayStationCount());
-                info.setSubwayTransitCount(x.getInfo().getSubwayTransitCount());
-                info.setTotalTime(duration);
-                info.setMapObj(x.getInfo().getMapObj());
-                info.setPayment(x.getInfo().getPayment());
-                path.setUseBus(x.getUseBus());
-                path.setUseSubway(x.getUseSubway());
-                path.setInfo(info);
-                path.setPathType(x.getPathType());
-                path.setSubPathList(tempList.stream().peek(y -> {
-                    if (y.getBikeParkingRouteInfo() != null) {
-                        y.setSubPath(null);
-                    }
-                }).collect(Collectors.toList()));
-                return path;
-            } else {
-                return null;
-            }
-        }).collect(Collectors.toList());
+//        List<RouteResponse.Path> bikeParkingRouteList = pathList.stream().map(x -> {
+//            Boolean isChecked = false;
+//            RouteResponse.Path path = new RouteResponse.Path();
+//            List<SubPathInfo> tempList = Lists.newArrayList();
+//            for (RouteResponse.Path.SubPathInfo originSubPathInfo : x.getSubPathList()) {
+//                SubPathInfo subPathInfo = new SubPathInfo();
+//                SubPath originSubPath = originSubPathInfo.getSubPath();
+//                if (originSubPath.getTrafficType() != 3 && !isChecked && !originSubPath.getStartX().equals(originSubPath.getEndX()) &&
+//                !originSubPath.getStartY().equals(originSubPath.getEndY())) {
+//                    Optional<BikeParkingRouteInfo> bikeParkingRouteInfo = this.getBikeParkingRouteInfo(originSubPath.getStartX(),
+//                                                                                                       originSubPath.getStartY(),
+//                                                                                                       originSubPath.getEndX(),
+//                                                                                                       originSubPath.getEndY());
+//                    if (bikeParkingRouteInfo.isPresent()) {
+//                        subPathInfo.setBikeParkingRouteInfo(bikeParkingRouteInfo.get());
+//                        isChecked = true;
+//                    }
+//                }
+//                subPathInfo.setSubPath(originSubPath);
+//                tempList.add(subPathInfo);
+//            }
+//            if (isChecked) {
+//                Integer duration = tempList.stream().map(y -> {
+//                    if (y.getBikeParkingRouteInfo() == null) {
+//                        return y.getSubPath().getSectionTime();
+//                    } else {
+//                        if (y.getBikeParkingRouteInfo()
+//                             .getSubPathRoute().getCode() == 1) {
+//                            return 0;
+//                        }
+//                        Integer sum = (y.getBikeParkingRouteInfo()
+//                                        .getSubPathRoute()
+//                                        .getRoute()
+//                                        .getOrDefault("traoptimal", Lists.newArrayList())
+//                                        .get(0)
+//                                        .getSummary().getDuration() / 1000) / 40;
+//                        y.getBikeParkingRouteInfo().setTotalTime(sum);
+//                        return sum;
+//                    }
+//                }).reduce((a, b) -> (int) a + (int) b).orElse(0);
+//                OdSaySearchPubTransPathResponse.Result.Info info = new OdSaySearchPubTransPathResponse.Result.Info();
+//                info.setTotalStationCount(x.getInfo().getTotalStationCount());
+//                info.setBusStationCount(x.getInfo().getBusStationCount());
+//                info.setBusTransitCount(x.getInfo().getBusTransitCount());
+//                info.setSubwayStationCount(x.getInfo().getSubwayStationCount());
+//                info.setSubwayTransitCount(x.getInfo().getSubwayTransitCount());
+//                info.setTotalTime(duration);
+//                info.setMapObj(x.getInfo().getMapObj());
+//                info.setPayment(x.getInfo().getPayment());
+//                path.setUseBus(x.getUseBus());
+//                path.setUseSubway(x.getUseSubway());
+//                path.setInfo(info);
+//                path.setPathType(x.getPathType());
+//                path.setSubPathList(tempList.stream().peek(y -> {
+//                    if (y.getBikeParkingRouteInfo() != null) {
+//                        y.setSubPath(null);
+//                    }
+//                }).collect(Collectors.toList()));
+//                return path;
+//            } else {
+//                return null;
+//            }
+//        }).collect(Collectors.toList());
 
-        pathList = Stream.concat(Stream.concat(pathList.stream(), parkingRouteList.stream()), bikeParkingRouteList.stream())
+        pathList = Stream.concat(pathList.stream(), parkingRouteList.stream())
                          .filter(Objects::nonNull)
                          .peek(x -> {
                              x.setUseBus(x.getSubPathList().stream().anyMatch(y -> y.getSubPath() != null && y.getSubPath()
@@ -238,8 +243,21 @@ public class RouteServiceImpl implements RouteService {
                              x.setUseCar(x.getSubPathList().stream().anyMatch(y -> y.getParkingRouteInfo() != null));
                          })
                          .filter(x -> !(!x.getUseBus() && !x.getUseSubway() && !x.getUseBike() && x.getUseCar()))
-                         .filter(x -> x.getUseCar())
+                         .filter(RouteResponse.Path::getUseCar)
                          .collect(Collectors.toList());
+//        pathList = Stream.concat(Stream.concat(pathList.stream(), parkingRouteList.stream()), bikeParkingRouteList.stream())
+//                         .filter(Objects::nonNull)
+//                         .peek(x -> {
+//                             x.setUseBus(x.getSubPathList().stream().anyMatch(y -> y.getSubPath() != null && y.getSubPath()
+//                                                                                                              .getTrafficType() == 2));
+//                             x.setUseSubway(x.getSubPathList().stream().anyMatch(y -> y.getSubPath() != null && y.getSubPath()
+//                                                                                                                 .getTrafficType() == 1));
+//                             x.setUseBike(x.getSubPathList().stream().anyMatch(y -> y.getBikeParkingRouteInfo() != null));
+//                             x.setUseCar(x.getSubPathList().stream().anyMatch(y -> y.getParkingRouteInfo() != null));
+//                         })
+//                         .filter(x -> !(!x.getUseBus() && !x.getUseSubway() && !x.getUseBike() && x.getUseCar()))
+//                         .filter(RouteResponse.Path::getUseCar)
+//                         .collect(Collectors.toList());
 /*
         pathList = pathList.stream()
                            .filter(x -> x.getSubPathList()
@@ -267,10 +285,11 @@ public class RouteServiceImpl implements RouteService {
                 .filter(x -> LocalDateTime.now().atZone(ZoneId.of("Asia/Seoul"))
                                           .isAfter(LocalDateTime.parse(x.getDtTxt(),
                                                                        DateTimeFormatter.ofPattern(
-                                                                           "yyyy-MM-dd HH:mm:ss").withLocale(Locale.KOREA)).atZone(ZoneId.of("Asia/Seoul"))))
+                                                                           "yyyy-MM-dd HH:mm:ss").withLocale(Locale.KOREA))
+                                                                .atZone(ZoneId.of("Asia/Seoul"))))
                 .min((a, b) -> b.getDt().compareTo(a.getDt()))
                 .ifPresent(routeResponse::setForecast);
-        if(routeResponse.getForecast() == null) {
+        if (routeResponse.getForecast() == null) {
             forecast.getList().stream().min((a, b) -> b.getDt() - a.getDt()).ifPresent(routeResponse::setForecast);
         }
         return routeResponse;
@@ -307,7 +326,7 @@ public class RouteServiceImpl implements RouteService {
             BikeParkingInfo endBikeParkingInfo = endBikeParkingInfoList.stream()
                                                                        .findFirst()
                                                                        .get();
-            if(startBikeParkingInfo.getStationName().equals(endBikeParkingInfo.getStationName())) {
+            if (startBikeParkingInfo.getStationName().equals(endBikeParkingInfo.getStationName())) {
                 return Optional.empty();
             }
             BikeParkingRouteInfo bikeParkingRouteInfo = new BikeParkingRouteInfo();

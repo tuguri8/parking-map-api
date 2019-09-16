@@ -11,26 +11,8 @@ import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
 import java.util.List;
 
 public class V2RouteResponse {
-    private ForecastWarningResponse.Data.Row forecastWarning;
-    private ForecastResponse.Item forecast;
     private NaverMapsDirectionDrivingResponse driveRoute;
     private List<Path> pathList;
-
-    public ForecastWarningResponse.Data.Row getForecastWarning() {
-        return forecastWarning;
-    }
-
-    public void setForecastWarning(ForecastWarningResponse.Data.Row forecastWarning) {
-        this.forecastWarning = forecastWarning;
-    }
-
-    public ForecastResponse.Item getForecast() {
-        return forecast;
-    }
-
-    public void setForecast(ForecastResponse.Item forecast) {
-        this.forecast = forecast;
-    }
 
     public NaverMapsDirectionDrivingResponse getDriveRoute() {
         return driveRoute;
@@ -49,14 +31,9 @@ public class V2RouteResponse {
     }
 
     public static class Path {
-        private Boolean useBus;
-        private Boolean useSubway;
-        private Boolean useBike;
-        private Boolean useCar;
-        private Integer pathType;
         private Summary summary;
         private Detail detail;
-        private OdSaySearchPubTransPathResponse.Result.Info info;
+        private Info info;
 
         public Summary getSummary() {
             return summary;
@@ -74,52 +51,124 @@ public class V2RouteResponse {
             this.detail = detail;
         }
 
-        public Boolean getUseBus() {
-            return useBus;
-        }
-
-        public void setUseBus(Boolean useBus) {
-            this.useBus = useBus;
-        }
-
-        public Boolean getUseSubway() {
-            return useSubway;
-        }
-
-        public void setUseSubway(Boolean useSubway) {
-            this.useSubway = useSubway;
-        }
-
-        public Boolean getUseBike() {
-            return useBike;
-        }
-
-        public void setUseBike(Boolean useBike) {
-            this.useBike = useBike;
-        }
-
-        public Boolean getUseCar() {
-            return useCar;
-        }
-
-        public void setUseCar(Boolean useCar) {
-            this.useCar = useCar;
-        }
-
-        public Integer getPathType() {
-            return pathType;
-        }
-
-        public void setPathType(Integer pathType) {
-            this.pathType = pathType;
-        }
-
-        public OdSaySearchPubTransPathResponse.Result.Info getInfo() {
+        public Info getInfo() {
             return info;
         }
 
-        public void setInfo(OdSaySearchPubTransPathResponse.Result.Info info) {
+        public void setInfo(Info info) {
             this.info = info;
+        }
+
+        public static class Info {
+            // 요금
+            private Integer payment;
+            // 버스 환승 카운트
+            private Integer busTransitCount;
+            // 지하철 환승 카운트
+            private Integer subwayTransitCount;
+            // 버스 정류장 합
+            private Integer busStationCount;
+            // 지하철 정류장 합
+            private Integer subwayStationCount;
+            private Integer totalStationCount;
+            // 총 소요시간
+            private Integer totalTime;
+            // 총 도보 이동 거리
+            private Integer totalWalk;
+            // 도보를 제외한 총 이동 거리
+            private Integer trafficDistance;
+            // 총 거리
+            private Integer totalDistance;
+            // 총 도보 시간
+            private Integer totalWalkTime;
+
+            public Integer getPayment() {
+                return payment;
+            }
+
+            public void setPayment(Integer payment) {
+                this.payment = payment;
+            }
+
+            public Integer getBusTransitCount() {
+                return busTransitCount;
+            }
+
+            public void setBusTransitCount(Integer busTransitCount) {
+                this.busTransitCount = busTransitCount;
+            }
+
+            public Integer getSubwayTransitCount() {
+                return subwayTransitCount;
+            }
+
+            public void setSubwayTransitCount(Integer subwayTransitCount) {
+                this.subwayTransitCount = subwayTransitCount;
+            }
+
+            public Integer getBusStationCount() {
+                return busStationCount;
+            }
+
+            public void setBusStationCount(Integer busStationCount) {
+                this.busStationCount = busStationCount;
+            }
+
+            public Integer getSubwayStationCount() {
+                return subwayStationCount;
+            }
+
+            public void setSubwayStationCount(Integer subwayStationCount) {
+                this.subwayStationCount = subwayStationCount;
+            }
+
+            public Integer getTotalStationCount() {
+                return totalStationCount;
+            }
+
+            public void setTotalStationCount(Integer totalStationCount) {
+                this.totalStationCount = totalStationCount;
+            }
+
+            public Integer getTotalTime() {
+                return totalTime;
+            }
+
+            public void setTotalTime(Integer totalTime) {
+                this.totalTime = totalTime;
+            }
+
+            public Integer getTotalWalk() {
+                return totalWalk;
+            }
+
+            public void setTotalWalk(Integer totalWalk) {
+                this.totalWalk = totalWalk;
+            }
+
+            public Integer getTrafficDistance() {
+                return trafficDistance;
+            }
+
+            public void setTrafficDistance(Integer trafficDistance) {
+                this.trafficDistance = trafficDistance;
+            }
+
+            public Integer getTotalDistance() {
+                return totalDistance;
+            }
+
+            public void setTotalDistance(Integer totalDistance) {
+                this.totalDistance = totalDistance;
+            }
+
+            public Integer getTotalWalkTime() {
+                return totalWalkTime;
+            }
+
+            public void setTotalWalkTime(Integer totalWalkTime) {
+                this.totalWalkTime = totalWalkTime;
+            }
         }
 
         public static class Summary {

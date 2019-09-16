@@ -317,27 +317,27 @@ public class RouteServiceImpl implements RouteService {
                            })
                            .collect(Collectors.toList());
 
-        ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
+//        ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
         RouteResponse routeResponse = new RouteResponse();
 
         routeResponse.setPathList(pathList);
         routeResponse.setDriveRoute(directionDrivingResponse);
-        Arrays.stream(seoulOpenApiClient.forecastWarningMinuteParticleOfDustService(seoulOpenApiKey, "1", "1000").getData().getRow())
-              .findFirst()
-              .ifPresent(
-                  routeResponse::setForecastWarning);
-        forecast.getList()
-                .stream()
-                .filter(x -> LocalDateTime.now().atZone(ZoneId.of("Asia/Seoul"))
-                                          .isAfter(LocalDateTime.parse(x.getDtTxt(),
-                                                                       DateTimeFormatter.ofPattern(
-                                                                           "yyyy-MM-dd HH:mm:ss").withLocale(Locale.KOREA))
-                                                                .atZone(ZoneId.of("Asia/Seoul"))))
-                .min((a, b) -> b.getDt().compareTo(a.getDt()))
-                .ifPresent(routeResponse::setForecast);
-        if (routeResponse.getForecast() == null) {
-            forecast.getList().stream().min((a, b) -> b.getDt() - a.getDt()).ifPresent(routeResponse::setForecast);
-        }
+//        Arrays.stream(seoulOpenApiClient.forecastWarningMinuteParticleOfDustService(seoulOpenApiKey, "1", "1000").getData().getRow())
+//              .findFirst()
+//              .ifPresent(
+//                  routeResponse::setForecastWarning);
+//        forecast.getList()
+//                .stream()
+//                .filter(x -> LocalDateTime.now().atZone(ZoneId.of("Asia/Seoul"))
+//                                          .isAfter(LocalDateTime.parse(x.getDtTxt(),
+//                                                                       DateTimeFormatter.ofPattern(
+//                                                                           "yyyy-MM-dd HH:mm:ss").withLocale(Locale.KOREA))
+//                                                                .atZone(ZoneId.of("Asia/Seoul"))))
+//                .min((a, b) -> b.getDt().compareTo(a.getDt()))
+//                .ifPresent(routeResponse::setForecast);
+//        if (routeResponse.getForecast() == null) {
+//            forecast.getList().stream().min((a, b) -> b.getDt() - a.getDt()).ifPresent(routeResponse::setForecast);
+//        }
         return modelMapper.map(routeResponse, V2RouteResponse.class);
     }
 

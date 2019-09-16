@@ -32,10 +32,11 @@ public class MapController {
 
     @GetMapping("route")
     public V2RouteResponse route(@RequestParam("startX") String startX,
-                               @RequestParam("startY") String startY,
-                               @RequestParam("endX") String endX,
-                               @RequestParam("endY") String endY) {
-        return routeService.route(startX, startY, endX, endY);
+                                 @RequestParam("startY") String startY,
+                                 @RequestParam("endX") String endX,
+                                 @RequestParam("endY") String endY,
+                                 @RequestParam(value = "sort", defaultValue = "best") String sort) {
+        return routeService.route(startX, startY, endX, endY, sort);
     }
 
     @GetMapping(value = "image", produces = MediaType.IMAGE_JPEG_VALUE)

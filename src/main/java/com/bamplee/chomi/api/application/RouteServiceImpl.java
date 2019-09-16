@@ -18,6 +18,8 @@ import com.bamplee.chomi.api.interfaces.place.dto.response.V2RouteResponse;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,8 @@ public class RouteServiceImpl implements RouteService {
     @Value("${seoul-openapi.key}")
     String seoulOpenApiKey;
 
+    private static final Logger log = LoggerFactory.getLogger(RouteServiceImpl.class);
+
     private final ParkingSyncService parkingSyncService;
     private final BikeParkingSyncService bikeParkingSyncService;
     private final NaverMapsClient naverMapsClient;
@@ -69,7 +73,7 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public V2RouteResponse route(String departureX, String departureY, String destinationX, String destinationY) {
+    public V2RouteResponse route(String departureX, String departureY, String destinationX, String destinationY, String sortType) {
         // 대중교통 경로부터 찾기
         OdSaySearchPubTransPathResponse searchPubTransPath = this.getSearchPubTransPath(departureX,
                                                                                         departureY,
@@ -299,6 +303,20 @@ public class RouteServiceImpl implements RouteService {
                              x.setDetail(detail);
                          })
                          .collect(Collectors.toList());
+        pathList = pathList.stream()
+                            .sorted((a, b) -> {
+                                if(sortType.equals("time")) {
+                                    return a.getSummary().getTotalTime().compareTo(b.getSummary().getTotalTime());
+                                } else if (sortType.equals("transport")) {
+                                    return (a.getInfo().getBusTransitCount() + a.getInfo().getSubwayTransitCount()) - (b.getInfo().getBusTransitCount() + b.getInfo().getSubwayTransitCount());
+                                } else if (sortType.equals("price")) {
+                                    return a.getSummary().getTotalPrice().compareTo(b.getSummary().getTotalPrice());
+                                } else if (sortType.equals("walk")) {
+                                    return a.getInfo().getTotalWalkTime().compareTo(b.getInfo().getTotalWalkTime());
+                                }
+                                return 0;
+                            })
+                            .collect(Collectors.toList());
 //        pathList = Stream.concat(Stream.concat(pathList.stream(), parkingRouteList.stream()), bikeParkingRouteList.stream())
 //                         .filter(Objects::nonNull)
 //                         .peek(x -> {
@@ -322,10 +340,8 @@ public class RouteServiceImpl implements RouteService {
                                          .orElse(0) > 0
                            )
                            .collect(Collectors.toList());
-*/
-//        String start = departureX + "," + departureY;
-//        String goal = destinationX + "," + destinationY;
-//        NaverMapsDirectionDrivingResponse directionDrivingResponse = naverMapsClient.direction5Driving(start, goal, "t");
+
+ */
         ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
         RouteResponse routeResponse = new RouteResponse();
 

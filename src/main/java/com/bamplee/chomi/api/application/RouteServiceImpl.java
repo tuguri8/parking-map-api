@@ -73,7 +73,12 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public V2RouteResponse route(String departureX, String departureY, String destinationX, String destinationY, String sortType) {
+    public V2RouteResponse route(String departureX,
+                                 String departureY,
+                                 String destinationX,
+                                 String destinationY,
+                                 String sortType,
+                                 String parkType) {
         // 대중교통 경로부터 찾기
         OdSaySearchPubTransPathResponse searchPubTransPath = this.getSearchPubTransPath(departureX,
                                                                                         departureY,
@@ -304,19 +309,28 @@ public class RouteServiceImpl implements RouteService {
                          })
                          .collect(Collectors.toList());
         pathList = pathList.stream()
-                            .sorted((a, b) -> {
-                                if(sortType.equals("time")) {
-                                    return a.getSummary().getTotalTime().compareTo(b.getSummary().getTotalTime());
-                                } else if (sortType.equals("transport")) {
-                                    return (a.getInfo().getBusTransitCount() + a.getInfo().getSubwayTransitCount()) - (b.getInfo().getBusTransitCount() + b.getInfo().getSubwayTransitCount());
-                                } else if (sortType.equals("price")) {
-                                    return a.getSummary().getTotalPrice().compareTo(b.getSummary().getTotalPrice());
-                                } else if (sortType.equals("walk")) {
-                                    return a.getInfo().getTotalWalkTime().compareTo(b.getInfo().getTotalWalkTime());
-                                }
-                                return 0;
-                            })
-                            .collect(Collectors.toList());
+                           .filter(x -> {
+                               if (parkType.equalsIgnoreCase("ALL")) {
+                                   return true;
+                               }
+                               return x.getSummary().getParkingType().equalsIgnoreCase(parkType);
+                           })
+                           .sorted((a, b) -> {
+                               if (sortType.equals("time")) {
+                                   return a.getSummary().getTotalTime().compareTo(b.getSummary().getTotalTime());
+                               } else if (sortType.equals("transport")) {
+                                   return (a.getInfo().getBusTransitCount() + a.getInfo().getSubwayTransitCount()) - (b.getInfo()
+                                                                                                                       .getBusTransitCount() + b
+                                       .getInfo()
+                                       .getSubwayTransitCount());
+                               } else if (sortType.equals("price")) {
+                                   return a.getSummary().getTotalPrice().compareTo(b.getSummary().getTotalPrice());
+                               } else if (sortType.equals("walk")) {
+                                   return a.getInfo().getTotalWalkTime().compareTo(b.getInfo().getTotalWalkTime());
+                               }
+                               return 0;
+                           })
+                           .collect(Collectors.toList());
 //        pathList = Stream.concat(Stream.concat(pathList.stream(), parkingRouteList.stream()), bikeParkingRouteList.stream())
 //                         .filter(Objects::nonNull)
 //                         .peek(x -> {

@@ -35,8 +35,9 @@ public class MapController {
                                  @RequestParam("startY") String startY,
                                  @RequestParam("endX") String endX,
                                  @RequestParam("endY") String endY,
-                                 @RequestParam(value = "sort", defaultValue = "best") String sort) {
-        return routeService.route(startX, startY, endX, endY, sort);
+                                 @RequestParam(value = "sort", defaultValue = "best") String sort,
+                                 @RequestParam(value = "parkType", defaultValue = "ALL") String parkType) {
+        return routeService.route(startX, startY, endX, endY, sort, parkType);
     }
 
     @GetMapping(value = "image", produces = MediaType.IMAGE_JPEG_VALUE)

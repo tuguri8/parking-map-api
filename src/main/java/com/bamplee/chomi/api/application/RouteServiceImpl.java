@@ -181,70 +181,6 @@ public class RouteServiceImpl implements RouteService {
             }
         }).collect(Collectors.toList());
 
-//        List<RouteResponse.Path> bikeParkingRouteList = pathList.stream().map(x -> {
-//            Boolean isChecked = false;
-//            RouteResponse.Path path = new RouteResponse.Path();
-//            List<SubPathInfo> tempList = Lists.newArrayList();
-//            for (RouteResponse.Path.SubPathInfo originSubPathInfo : x.getSubPathList()) {
-//                SubPathInfo subPathInfo = new SubPathInfo();
-//                SubPath originSubPath = originSubPathInfo.getSubPath();
-//                if (originSubPath.getTrafficType() != 3 && !isChecked && !originSubPath.getStartX().equals(originSubPath.getEndX()) &&
-//                !originSubPath.getStartY().equals(originSubPath.getEndY())) {
-//                    Optional<BikeParkingRouteInfo> bikeParkingRouteInfo = this.getBikeParkingRouteInfo(originSubPath.getStartX(),
-//                                                                                                       originSubPath.getStartY(),
-//                                                                                                       originSubPath.getEndX(),
-//                                                                                                       originSubPath.getEndY());
-//                    if (bikeParkingRouteInfo.isPresent()) {
-//                        subPathInfo.setBikeParkingRouteInfo(bikeParkingRouteInfo.get());
-//                        isChecked = true;
-//                    }
-//                }
-//                subPathInfo.setSubPath(originSubPath);
-//                tempList.add(subPathInfo);
-//            }
-//            if (isChecked) {
-//                Integer duration = tempList.stream().map(y -> {
-//                    if (y.getBikeParkingRouteInfo() == null) {
-//                        return y.getSubPath().getSectionTime();
-//                    } else {
-//                        if (y.getBikeParkingRouteInfo()
-//                             .getSubPathRoute().getCode() == 1) {
-//                            return 0;
-//                        }
-//                        Integer sum = (y.getBikeParkingRouteInfo()
-//                                        .getSubPathRoute()
-//                                        .getRoute()
-//                                        .getOrDefault("traoptimal", Lists.newArrayList())
-//                                        .get(0)
-//                                        .getSummary().getDuration() / 1000) / 40;
-//                        y.getBikeParkingRouteInfo().setTotalTime(sum);
-//                        return sum;
-//                    }
-//                }).reduce((a, b) -> (int) a + (int) b).orElse(0);
-//                OdSaySearchPubTransPathResponse.Result.Info info = new OdSaySearchPubTransPathResponse.Result.Info();
-//                info.setTotalStationCount(x.getInfo().getTotalStationCount());
-//                info.setBusStationCount(x.getInfo().getBusStationCount());
-//                info.setBusTransitCount(x.getInfo().getBusTransitCount());
-//                info.setSubwayStationCount(x.getInfo().getSubwayStationCount());
-//                info.setSubwayTransitCount(x.getInfo().getSubwayTransitCount());
-//                info.setTotalTime(duration);
-//                info.setMapObj(x.getInfo().getMapObj());
-//                info.setPayment(x.getInfo().getPayment());
-//                path.setUseBus(x.getUseBus());
-//                path.setUseSubway(x.getUseSubway());
-//                path.setInfo(info);
-//                path.setPathType(x.getPathType());
-//                path.setSubPathList(tempList.stream().peek(y -> {
-//                    if (y.getBikeParkingRouteInfo() != null) {
-//                        y.setSubPath(null);
-//                    }
-//                }).collect(Collectors.toList()));
-//                return path;
-//            } else {
-//                return null;
-//            }
-//        }).collect(Collectors.toList());
-
         String start = departureX + "," + departureY;
         String goal = destinationX + "," + destinationY;
         NaverMapsDirectionDrivingResponse directionDrivingResponse = naverMapsClient.direction5Driving(start, goal, "t");
@@ -296,18 +232,67 @@ public class RouteServiceImpl implements RouteService {
                                                                                                                      .getTollFare());
 
                              RouteResponse.Path.Detail detail = new RouteResponse.Path.Detail();
-                             detail.setInfo(x.getInfo());
                              detail.setParkingInfo(subPathInfo.getParkingRouteInfo().getParkingInfo());
                              detail.setSubPathList(x.getSubPathList());
                              List<RouteResponse.Path.Detail.DetailPath> detailPathList = x.getSubPathList()
                                                                                           .stream()
                                                                                           .map(y -> transform(y))
                                                                                           .collect(Collectors.toList());
+                             for (int i = 0; i < detailPathList.size(); i++) {
+                                 if (detailPathList.get(i).getEndName() == null) {
+                                     if (i == 0) {
+                                         detailPathList.get(i).setEndName(summary.getParkingName());
+                                     } else if (i == detailPathList.size() - 1) {
+                                         detailPathList.get(i).setEndName("목적지");
+                                     } else {
+                                         detailPathList.get(i).setEndName(detailPathList.get(i + 1).getStartName());
+                                     }
+                                 }
+                                 if (detailPathList.get(i).getStartName() == null) {
+                                     if (i == 0) {
+                                         detailPathList.get(i).setStartName("출발지");
+                                     } else {
+                                         detailPathList.get(i).setStartName(detailPathList.get(i - 1).getEndName());
+                                     }
+                                 }
+
+                             }
+                             x.getInfo().setTotalWalkTime(timeBarList.stream()
+                                                                     .filter(timeBar -> timeBar.getTrafficType().equals("WALK"))
+                                                                     .map(RouteResponse.Path.Summary.TimeBar::getTime)
+                                                                     .reduce(0, Integer::sum));
+                             x.getInfo().setTotalWalk(detailPathList.stream()
+                                                                    .filter(detailPath -> detailPath.getTrafficType().equals("WALK"))
+                                                                    .map(RouteResponse.Path.Detail.DetailPath::getDistance)
+                                                                    .reduce(0, Integer::sum));
+                             x.getInfo().setTotalDistance(detailPathList.stream()
+                                                                        .map(RouteResponse.Path.Detail.DetailPath::getDistance)
+                                                                        .reduce(0, Integer::sum));
+                             x.getInfo().setTrafficDistance(x.getInfo().getTotalDistance() - x.getInfo().getTotalWalk());
+                             x.getInfo().setBusTransitCount((int) detailPathList.stream()
+                                                                                .filter(detailPath -> detailPath.getTrafficType()
+                                                                                                                .equals("BUS"))
+                                                                                .count());
+                             x.getInfo().setSubwayTransitCount((int) detailPathList.stream()
+                                                                                   .filter(detailPath -> detailPath.getTrafficType()
+                                                                                                                   .equals("SUBWAY"))
+                                                                                   .count());
+                             x.getInfo().setBusStationCount(detailPathList.stream()
+                                                                          .filter(detailPath -> detailPath.getTrafficType().equals("BUS"))
+                                                                          .map(RouteResponse.Path.Detail.DetailPath::getStationCount)
+                                                                          .reduce(0, Integer::sum));
+                             x.getInfo().setSubwayStationCount(detailPathList.stream()
+                                                                          .filter(detailPath -> detailPath.getTrafficType().equals("SUBWAY"))
+                                                                          .map(RouteResponse.Path.Detail.DetailPath::getStationCount)
+                                                                          .reduce(0, Integer::sum));
+                             x.getInfo().setTotalStationCount(x.getInfo().getBusStationCount() + x.getInfo().getSubwayStationCount());
+                             detail.setInfo(x.getInfo());
                              detail.setDetailPathList(detailPathList);
                              x.setSummary(summary);
                              x.setDetail(detail);
                          })
                          .collect(Collectors.toList());
+
         pathList = pathList.stream()
                            .filter(x -> {
                                if (parkType.equalsIgnoreCase("ALL")) {
@@ -331,31 +316,7 @@ public class RouteServiceImpl implements RouteService {
                                return 0;
                            })
                            .collect(Collectors.toList());
-//        pathList = Stream.concat(Stream.concat(pathList.stream(), parkingRouteList.stream()), bikeParkingRouteList.stream())
-//                         .filter(Objects::nonNull)
-//                         .peek(x -> {
-//                             x.setUseBus(x.getSubPathList().stream().anyMatch(y -> y.getSubPath() != null && y.getSubPath()
-//                                                                                                              .getTrafficType() == 2));
-//                             x.setUseSubway(x.getSubPathList().stream().anyMatch(y -> y.getSubPath() != null && y.getSubPath()
-//                                                                                                                 .getTrafficType() == 1));
-//                             x.setUseBike(x.getSubPathList().stream().anyMatch(y -> y.getBikeParkingRouteInfo() != null));
-//                             x.setUseCar(x.getSubPathList().stream().anyMatch(y -> y.getParkingRouteInfo() != null));
-//                         })
-//                         .filter(x -> !(!x.getUseBus() && !x.getUseSubway() && !x.getUseBike() && x.getUseCar()))
-//                         .filter(RouteResponse.Path::getUseCar)
-//                         .collect(Collectors.toList());
-/*
-        pathList = pathList.stream()
-                           .filter(x -> x.getSubPathList()
-                                         .stream()
-                                         .map(y -> y.getParkingRouteInfoList()
-                                                    .size())
-                                         .reduce(Integer::sum)
-                                         .orElse(0) > 0
-                           )
-                           .collect(Collectors.toList());
 
- */
         ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
         RouteResponse routeResponse = new RouteResponse();
 

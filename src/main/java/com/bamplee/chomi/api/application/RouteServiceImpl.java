@@ -14,6 +14,7 @@ import com.bamplee.chomi.api.datatool.openweathermap.dto.ForecastResponse;
 import com.bamplee.chomi.api.datatool.seoul.SeoulOpenApiClient;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.BikeParkingInfo;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
+import com.bamplee.chomi.api.interfaces.place.dto.response.V2RouteResponse;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
@@ -67,7 +68,7 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public RouteResponse route(String departureX, String departureY, String destinationX, String destinationY) {
+    public V2RouteResponse route(String departureX, String departureY, String destinationX, String destinationY) {
         // 대중교통 경로부터 찾기
         OdSaySearchPubTransPathResponse searchPubTransPath = this.getSearchPubTransPath(departureX,
                                                                                         departureY,
@@ -325,8 +326,7 @@ public class RouteServiceImpl implements RouteService {
         if (routeResponse.getForecast() == null) {
             forecast.getList().stream().min((a, b) -> b.getDt() - a.getDt()).ifPresent(routeResponse::setForecast);
         }
-//        return modelMapper.map(routeResponse, V2RouteResponse.class);
-        return routeResponse;
+        return modelMapper.map(routeResponse, V2RouteResponse.class);
     }
 
     private Optional<BikeParkingRouteInfo> getBikeParkingRouteInfo(Double startX, Double startY, Double endX, Double endY) {

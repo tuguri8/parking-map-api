@@ -31,7 +31,7 @@ public class MapController {
     }
 
     @GetMapping("route")
-    public RouteResponse route(@RequestParam("startX") String startX,
+    public V2RouteResponse route(@RequestParam("startX") String startX,
                                @RequestParam("startY") String startY,
                                @RequestParam("endX") String endX,
                                @RequestParam("endY") String endY) {

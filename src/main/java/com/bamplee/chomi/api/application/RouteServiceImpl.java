@@ -14,7 +14,6 @@ import com.bamplee.chomi.api.datatool.openweathermap.dto.ForecastResponse;
 import com.bamplee.chomi.api.datatool.seoul.SeoulOpenApiClient;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.BikeParkingInfo;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
-import com.bamplee.chomi.api.interfaces.place.dto.response.V2RouteResponse;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
@@ -68,7 +67,7 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public V2RouteResponse route(String departureX, String departureY, String destinationX, String destinationY) {
+    public RouteResponse route(String departureX, String departureY, String destinationX, String destinationY) {
         // 대중교통 경로부터 찾기
         OdSaySearchPubTransPathResponse searchPubTransPath = this.getSearchPubTransPath(departureX,
                                                                                         departureY,
@@ -270,6 +269,11 @@ public class RouteServiceImpl implements RouteService {
                              detail.setInfo(x.getInfo());
                              detail.setParkingInfo(subPathInfo.getParkingRouteInfo().getParkingInfo());
                              detail.setSubPathList(x.getSubPathList());
+                             List<RouteResponse.Path.Detail.DetailPath> detailPathList = x.getSubPathList()
+                                                                                          .stream()
+                                                                                          .map(y -> transform(y))
+                                                                                          .collect(Collectors.toList());
+                             detail.setDetailPathList(detailPathList);
                              x.setSummary(summary);
                              x.setDetail(detail);
                          })
@@ -321,7 +325,8 @@ public class RouteServiceImpl implements RouteService {
         if (routeResponse.getForecast() == null) {
             forecast.getList().stream().min((a, b) -> b.getDt() - a.getDt()).ifPresent(routeResponse::setForecast);
         }
-        return modelMapper.map(routeResponse, V2RouteResponse.class);
+//        return modelMapper.map(routeResponse, V2RouteResponse.class);
+        return routeResponse;
     }
 
     private Optional<BikeParkingRouteInfo> getBikeParkingRouteInfo(Double startX, Double startY, Double endX, Double endY) {
@@ -495,4 +500,61 @@ public class RouteServiceImpl implements RouteService {
         }
         return timeBar;
     }
+
+    private RouteResponse.Path.Detail.DetailPath transform(SubPathInfo subPathInfo) {
+        RouteResponse.Path.Detail.DetailPath detailPath = new RouteResponse.Path.Detail.DetailPath();
+        if (subPathInfo.getSubPath() != null) {
+            detailPath.setTrafficType(TrafficType.getTrafficTypeByNum(subPathInfo.getSubPath().getTrafficType()).getTrafficTypeName());
+            detailPath.setDistance(subPathInfo.getSubPath().getDistance());
+            detailPath.setSectionTime(subPathInfo.getSubPath().getSectionTime());
+            detailPath.setEndName(subPathInfo.getSubPath().getEndName());
+            detailPath.setStartName(subPathInfo.getSubPath().getStartName());
+            detailPath.setLane(subPathInfo.getSubPath().getLane());
+            detailPath.setPassStopList(subPathInfo.getSubPath().getPassStopList());
+            detailPath.setStationCount(subPathInfo.getSubPath().getStationCount());
+            detailPath.setStartX(subPathInfo.getSubPath().getStartX());
+            detailPath.setStartY(subPathInfo.getSubPath().getStartY());
+            detailPath.setEndX(subPathInfo.getSubPath().getEndX());
+            detailPath.setEndY(subPathInfo.getSubPath().getEndY());
+        } else {
+            RouteResponse.Path.Detail.DetailPath.DriveRoute driveRoute = new RouteResponse.Path.Detail.DetailPath.DriveRoute();
+            driveRoute.setGuide(subPathInfo.getParkingRouteInfo()
+                                 .getSubPathRoute()
+                                 .getRoute()
+                                 .get("traoptimal")
+                                 .get(0)
+                                 .getGuide());
+            driveRoute.setPath(subPathInfo.getParkingRouteInfo()
+                                .getSubPathRoute()
+                                .getRoute()
+                                .get("traoptimal")
+                                .get(0)
+                                .getPath());
+            detailPath.setDriveRoute(driveRoute);
+            detailPath.setDistance(subPathInfo.getParkingRouteInfo()
+                                    .getSubPathRoute()
+                                    .getRoute()
+                                    .get("traoptimal")
+                                    .get(0)
+                                    .getSummary()
+                                    .getDistance());
+            detailPath.setSectionTime(subPathInfo.getParkingRouteInfo()
+                                       .getSubPathRoute()
+                                       .getRoute()
+                                       .get("traoptimal")
+                                       .get(0)
+                                       .getSummary()
+                                       .getDuration());
+            detailPath.setFuelPrice(subPathInfo.getParkingRouteInfo()
+                                     .getSubPathRoute()
+                                     .getRoute()
+                                     .get("traoptimal")
+                                     .get(0)
+                                     .getSummary()
+                                     .getFuelPrice());
+            detailPath.setTrafficType("CAR");
+        }
+        return detailPath;
+    }
+
 }

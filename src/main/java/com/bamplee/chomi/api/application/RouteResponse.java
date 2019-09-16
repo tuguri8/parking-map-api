@@ -1,6 +1,7 @@
 package com.bamplee.chomi.api.application;
 
 import com.bamplee.chomi.api.datatool.naver.dto.NaverMapsDirectionDrivingResponse;
+import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse.Result.Info;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse.Result.Path.SubPath;
 import com.bamplee.chomi.api.datatool.openweathermap.dto.ForecastResponse;
@@ -255,6 +256,7 @@ public class RouteResponse {
         }
 
         public static class Detail {
+            private List<DetailPath> detailPathList;
             private List<SubPathInfo> subPathList;
             private Info info;
             // 경유 주차장 정보
@@ -282,6 +284,181 @@ public class RouteResponse {
 
             public void setParkingInfo(ParkingInfo parkingInfo) {
                 this.parkingInfo = parkingInfo;
+            }
+
+            public List<DetailPath> getDetailPathList() {
+                return detailPathList;
+            }
+
+            public void setDetailPathList(List<DetailPath> detailPathList) {
+                this.detailPathList = detailPathList;
+            }
+
+            public static class DetailPath {
+                // 이동 수단 종류 (도보, 버스, 지하철), 1-지하철, 2-버스, 3-도보
+                private String trafficType;
+                // 이동 거리
+                private Integer distance;
+                // 이동 소요 시간
+                private Integer sectionTime;
+                // 교통 수단 정보 확장 노드
+                private List<OdSaySearchPubTransPathResponse.Result.Path.SubPath.Lane> lane;
+                // 이동 역 수
+                private Integer stationCount;
+                // 경로 상세구간 정보 확장 노드
+                private OdSaySearchPubTransPathResponse.Result.Path.SubPath.PassStopList passStopList;
+                // 경로 상세구간 정보 확장 노드(자동차인 경우)
+                private DriveRoute driveRoute;
+                private Integer fuelPrice;
+                // 승차 정류장/역 X 좌표
+                private Double startX;
+                // 승차 정류장/역 Y 좌표
+                private Double startY;
+                // 승차 역명
+                private String startName;
+                // 도착역 X 좌표
+                private Double endX;
+                // 도착역 Y 좌표
+                private Double endY;
+                // 도착역 id
+                // 도착역명
+                private String endName;
+
+                public DetailPath() {
+                }
+
+                public String getTrafficType() {
+                    return trafficType;
+                }
+
+                public void setTrafficType(String trafficType) {
+                    this.trafficType = trafficType;
+                }
+
+                public Integer getDistance() {
+                    return distance;
+                }
+
+                public void setDistance(Integer distance) {
+                    this.distance = distance;
+                }
+
+                public Integer getSectionTime() {
+                    return sectionTime;
+                }
+
+                public void setSectionTime(Integer sectionTime) {
+                    this.sectionTime = sectionTime;
+                }
+
+                public List<SubPath.Lane> getLane() {
+                    return lane;
+                }
+
+                public void setLane(List<SubPath.Lane> lane) {
+                    this.lane = lane;
+                }
+
+                public Integer getStationCount() {
+                    return stationCount;
+                }
+
+                public void setStationCount(Integer stationCount) {
+                    this.stationCount = stationCount;
+                }
+
+                public SubPath.PassStopList getPassStopList() {
+                    return passStopList;
+                }
+
+                public void setPassStopList(SubPath.PassStopList passStopList) {
+                    this.passStopList = passStopList;
+                }
+
+                public DriveRoute getDriveRoute() {
+                    return driveRoute;
+                }
+
+                public void setDriveRoute(DriveRoute driveRoute) {
+                    this.driveRoute = driveRoute;
+                }
+
+                public Integer getFuelPrice() {
+                    return fuelPrice;
+                }
+
+                public void setFuelPrice(Integer fuelPrice) {
+                    this.fuelPrice = fuelPrice;
+                }
+
+                public Double getStartX() {
+                    return startX;
+                }
+
+                public void setStartX(Double startX) {
+                    this.startX = startX;
+                }
+
+                public Double getStartY() {
+                    return startY;
+                }
+
+                public void setStartY(Double startY) {
+                    this.startY = startY;
+                }
+
+                public String getStartName() {
+                    return startName;
+                }
+
+                public void setStartName(String startName) {
+                    this.startName = startName;
+                }
+
+                public Double getEndX() {
+                    return endX;
+                }
+
+                public void setEndX(Double endX) {
+                    this.endX = endX;
+                }
+
+                public Double getEndY() {
+                    return endY;
+                }
+
+                public void setEndY(Double endY) {
+                    this.endY = endY;
+                }
+
+                public String getEndName() {
+                    return endName;
+                }
+
+                public void setEndName(String endName) {
+                    this.endName = endName;
+                }
+
+                public static class DriveRoute {
+                    private List<Double[]> path;
+                    private List<NaverMapsDirectionDrivingResponse.Route.Guide> guide;
+
+                    public List<Double[]> getPath() {
+                        return path;
+                    }
+
+                    public void setPath(List<Double[]> path) {
+                        this.path = path;
+                    }
+
+                    public List<NaverMapsDirectionDrivingResponse.Route.Guide> getGuide() {
+                        return guide;
+                    }
+
+                    public void setGuide(List<NaverMapsDirectionDrivingResponse.Route.Guide> guide) {
+                        this.guide = guide;
+                    }
+                }
             }
         }
 
@@ -341,6 +518,27 @@ public class RouteResponse {
 
                 public void setParkingInfo(ParkingInfo parkingInfo) {
                     this.parkingInfo = parkingInfo;
+                }
+            }
+
+            public static class DriveRoute {
+                private List<Double[]> path;
+                private List<NaverMapsDirectionDrivingResponse.Route.Guide> guide;
+
+                public List<Double[]> getPath() {
+                    return path;
+                }
+
+                public void setPath(List<Double[]> path) {
+                    this.path = path;
+                }
+
+                public List<NaverMapsDirectionDrivingResponse.Route.Guide> getGuide() {
+                    return guide;
+                }
+
+                public void setGuide(List<NaverMapsDirectionDrivingResponse.Route.Guide> guide) {
+                    this.guide = guide;
                 }
             }
 

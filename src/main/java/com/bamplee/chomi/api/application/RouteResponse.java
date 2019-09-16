@@ -133,7 +133,11 @@ public class RouteResponse {
         }
 
         public static class Summary {
-            //총 걸린 시간
+            // 차로 이동 시 걸리는 시간
+            private Integer driveTime;
+            // 차로 이동 시 가격(유류비)
+            private Integer drivePrice;
+            // 총 걸린 시간
             private Integer totalTime;
             // 총 금액
             private Integer totalPrice;
@@ -145,12 +149,38 @@ public class RouteResponse {
             private Integer curParking;
             // 유무료구분명
             private String payNm;
+            // 주차장 종류
+            private String parkingType;
             // 추가 단위 요금
             private Integer addRates;
             // 추가 단위 시간(분 단위)
             private Integer addTimeRate;
             // 시간 상태 바 정보
             private List<TimeBar> timeBarList;
+
+            public Integer getDriveTime() {
+                return driveTime;
+            }
+
+            public void setDriveTime(Integer driveTime) {
+                this.driveTime = driveTime;
+            }
+
+            public Integer getDrivePrice() {
+                return drivePrice;
+            }
+
+            public void setDrivePrice(Integer drivePrice) {
+                this.drivePrice = drivePrice;
+            }
+
+            public String getParkingType() {
+                return parkingType;
+            }
+
+            public void setParkingType(String parkingType) {
+                this.parkingType = parkingType;
+            }
 
             public Integer getTotalTime() {
                 return totalTime;

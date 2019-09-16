@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -235,6 +236,10 @@ public class RouteServiceImpl implements RouteService {
 //            }
 //        }).collect(Collectors.toList());
 
+        String start = departureX + "," + departureY;
+        String goal = destinationX + "," + destinationY;
+        NaverMapsDirectionDrivingResponse directionDrivingResponse = naverMapsClient.direction5Driving(start, goal, "t");
+
         pathList = Stream.concat(pathList.stream(), parkingRouteList.stream())
                          .filter(Objects::nonNull)
                          .peek(x -> {
@@ -258,6 +263,7 @@ public class RouteServiceImpl implements RouteService {
                              summary.setCurParking(subPathInfo.getParkingRouteInfo().getParkingInfo().getCurParking());
                              summary.setParkingName(subPathInfo.getParkingRouteInfo().getParkingInfo().getParkingName());
                              summary.setPayNm(subPathInfo.getParkingRouteInfo().getParkingInfo().getPayNm());
+                             summary.setParkingType(subPathInfo.getParkingRouteInfo().getParkingInfo().getParkingType());
 
                              List<RouteResponse.Path.Summary.TimeBar> timeBarList = x.getSubPathList().stream()
                                                                                      .map(this::calTimeBar)
@@ -265,6 +271,20 @@ public class RouteServiceImpl implements RouteService {
                              summary.setTimeBarList(timeBarList);
                              summary.setTotalPrice(x.getInfo().getPayment());
                              summary.setTotalTime(x.getInfo().getTotalTime());
+                             summary.setDriveTime(millToSecond(directionDrivingResponse.getRoute()
+                                                                                       .get("traoptimal")
+                                                                                       .get(0)
+                                                                                       .getSummary()
+                                                                                       .getDuration()));
+                             summary.setDrivePrice(directionDrivingResponse.getRoute()
+                                                                           .get("traoptimal")
+                                                                           .get(0)
+                                                                           .getSummary()
+                                                                           .getFuelPrice() + directionDrivingResponse.getRoute()
+                                                                                                                     .get("traoptimal")
+                                                                                                                     .get(0)
+                                                                                                                     .getSummary()
+                                                                                                                     .getTollFare());
 
                              RouteResponse.Path.Detail detail = new RouteResponse.Path.Detail();
                              detail.setInfo(x.getInfo());
@@ -303,11 +323,12 @@ public class RouteServiceImpl implements RouteService {
                            )
                            .collect(Collectors.toList());
 */
-        String start = departureX + "," + departureY;
-        String goal = destinationX + "," + destinationY;
-        NaverMapsDirectionDrivingResponse directionDrivingResponse = naverMapsClient.direction5Driving(start, goal, "t");
+//        String start = departureX + "," + departureY;
+//        String goal = destinationX + "," + destinationY;
+//        NaverMapsDirectionDrivingResponse directionDrivingResponse = naverMapsClient.direction5Driving(start, goal, "t");
         ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
         RouteResponse routeResponse = new RouteResponse();
+
         routeResponse.setPathList(pathList);
         routeResponse.setDriveRoute(directionDrivingResponse);
         Arrays.stream(seoulOpenApiClient.forecastWarningMinuteParticleOfDustService(seoulOpenApiKey, "1", "1000").getData().getRow())
@@ -519,42 +540,46 @@ public class RouteServiceImpl implements RouteService {
         } else {
             RouteResponse.Path.Detail.DetailPath.DriveRoute driveRoute = new RouteResponse.Path.Detail.DetailPath.DriveRoute();
             driveRoute.setGuide(subPathInfo.getParkingRouteInfo()
-                                 .getSubPathRoute()
-                                 .getRoute()
-                                 .get("traoptimal")
-                                 .get(0)
-                                 .getGuide());
+                                           .getSubPathRoute()
+                                           .getRoute()
+                                           .get("traoptimal")
+                                           .get(0)
+                                           .getGuide());
             driveRoute.setPath(subPathInfo.getParkingRouteInfo()
-                                .getSubPathRoute()
-                                .getRoute()
-                                .get("traoptimal")
-                                .get(0)
-                                .getPath());
+                                          .getSubPathRoute()
+                                          .getRoute()
+                                          .get("traoptimal")
+                                          .get(0)
+                                          .getPath());
             detailPath.setDriveRoute(driveRoute);
             detailPath.setDistance(subPathInfo.getParkingRouteInfo()
-                                    .getSubPathRoute()
-                                    .getRoute()
-                                    .get("traoptimal")
-                                    .get(0)
-                                    .getSummary()
-                                    .getDistance());
-            detailPath.setSectionTime(subPathInfo.getParkingRouteInfo()
-                                       .getSubPathRoute()
-                                       .getRoute()
-                                       .get("traoptimal")
-                                       .get(0)
-                                       .getSummary()
-                                       .getDuration());
+                                              .getSubPathRoute()
+                                              .getRoute()
+                                              .get("traoptimal")
+                                              .get(0)
+                                              .getSummary()
+                                              .getDistance());
+            detailPath.setSectionTime(millToSecond(subPathInfo.getParkingRouteInfo()
+                                                              .getSubPathRoute()
+                                                              .getRoute()
+                                                              .get("traoptimal")
+                                                              .get(0)
+                                                              .getSummary()
+                                                              .getDuration()));
             detailPath.setFuelPrice(subPathInfo.getParkingRouteInfo()
-                                     .getSubPathRoute()
-                                     .getRoute()
-                                     .get("traoptimal")
-                                     .get(0)
-                                     .getSummary()
-                                     .getFuelPrice());
+                                               .getSubPathRoute()
+                                               .getRoute()
+                                               .get("traoptimal")
+                                               .get(0)
+                                               .getSummary()
+                                               .getFuelPrice());
             detailPath.setTrafficType("CAR");
         }
         return detailPath;
+    }
+
+    private int millToSecond(int mill) {
+        return (int) TimeUnit.MILLISECONDS.toMinutes(mill);
     }
 
 }

@@ -19,14 +19,17 @@ public class Air extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "AREA_CODE")
-    private String areaCode;
+    @Column(name = "AREA_NAME")
+    private String areaName;
 
     @Column(name = "ITEM_CODE")
     private String itemCode;
 
     @Column(name = "AIR_VALUE")
     private Integer airValue;
+
+    @Column(name = "AIR_GRADE")
+    private String airGrade;
 
     @Column(name = "DATA_TIME")
     private LocalDateTime dataTime;
@@ -39,8 +42,12 @@ public class Air extends BaseEntity implements Serializable {
         return id;
     }
 
-    public String getAreaCode() {
-        return areaCode;
+    public String getAreaName() {
+        return areaName;
+    }
+
+    public String getAirGrade() {
+        return airGrade;
     }
 
     public String getItemCode() {
@@ -56,14 +63,16 @@ public class Air extends BaseEntity implements Serializable {
     }
 
     public static class Builder {
-        private final String areaCode;
+        private final String areaName;
         private final Integer airvalue;
+        private final String airGrade;
         private final LocalDateTime dateTime;
         private String itemCode = "PM10";
 
-        public Builder(String areaCode, Integer airvalue, LocalDateTime dateTime) {
-            this.areaCode = areaCode;
+        public Builder(String areaName, Integer airvalue, String airGrade, LocalDateTime dateTime) {
+            this.areaName = areaName;
             this.airvalue = airvalue;
+            this.airGrade = airGrade;
             this.dateTime = dateTime;
         }
 
@@ -78,9 +87,10 @@ public class Air extends BaseEntity implements Serializable {
     }
 
     public Air(Builder builder) {
-        areaCode = builder.areaCode;
+        areaName = builder.areaName;
         itemCode = builder.itemCode;
         airValue = builder.airvalue;
+        airGrade = builder.airGrade;
         dataTime = builder.dateTime;
     }
 }

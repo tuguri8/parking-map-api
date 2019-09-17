@@ -11,14 +11,14 @@ import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
 import java.util.List;
 
 public class V2RouteResponse {
-    private NaverMapsDirectionDrivingResponse driveRoute;
+    private DriveRoute driveRoute;
     private List<Path> pathList;
 
-    public NaverMapsDirectionDrivingResponse getDriveRoute() {
+    public DriveRoute getDriveRoute() {
         return driveRoute;
     }
 
-    public void setDriveRoute(NaverMapsDirectionDrivingResponse driveRoute) {
+    public void setDriveRoute(DriveRoute driveRoute) {
         this.driveRoute = driveRoute;
     }
 
@@ -28,6 +28,81 @@ public class V2RouteResponse {
 
     public void setPathList(List<Path> pathList) {
         this.pathList = pathList;
+    }
+
+    public static class DriveRoute {
+        private NaverMapsDirectionDrivingResponse.Route.Summary.Start start;
+        private NaverMapsDirectionDrivingResponse.Route.Summary.Goal goal;
+        private Integer distance;
+        private Integer duration;
+        private Integer tollFare;
+        private Integer fuelPrice;
+        private List<Double[]> path;
+        private List<NaverMapsDirectionDrivingResponse.Route.Guide> guide;
+
+        public NaverMapsDirectionDrivingResponse.Route.Summary.Start getStart() {
+            return start;
+        }
+
+        public void setStart(NaverMapsDirectionDrivingResponse.Route.Summary.Start start) {
+            this.start = start;
+        }
+
+        public NaverMapsDirectionDrivingResponse.Route.Summary.Goal getGoal() {
+            return goal;
+        }
+
+        public void setGoal(NaverMapsDirectionDrivingResponse.Route.Summary.Goal goal) {
+            this.goal = goal;
+        }
+
+        public Integer getDistance() {
+            return distance;
+        }
+
+        public void setDistance(Integer distance) {
+            this.distance = distance;
+        }
+
+        public Integer getDuration() {
+            return duration;
+        }
+
+        public void setDuration(Integer duration) {
+            this.duration = duration;
+        }
+
+        public Integer getTollFare() {
+            return tollFare;
+        }
+
+        public void setTollFare(Integer tollFare) {
+            this.tollFare = tollFare;
+        }
+
+        public Integer getFuelPrice() {
+            return fuelPrice;
+        }
+
+        public void setFuelPrice(Integer fuelPrice) {
+            this.fuelPrice = fuelPrice;
+        }
+
+        public List<Double[]> getPath() {
+            return path;
+        }
+
+        public void setPath(List<Double[]> path) {
+            this.path = path;
+        }
+
+        public List<NaverMapsDirectionDrivingResponse.Route.Guide> getGuide() {
+            return guide;
+        }
+
+        public void setGuide(List<NaverMapsDirectionDrivingResponse.Route.Guide> guide) {
+            this.guide = guide;
+        }
     }
 
     public static class Path {

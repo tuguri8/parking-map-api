@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -530,12 +531,8 @@ public class RouteServiceImpl implements RouteService {
                                                                        .getRoute()
                                                                        .get("traoptimal")
                                                                        .get(0);
-
-            driveRoute.setGuide(route.getGuide()
-                                     .stream()
-                                     .peek(x -> x.setDuration(millToMinute(x.getDuration())))
-                                     .collect(Collectors.toList()));
             driveRoute.setPath(route.getPath());
+            driveRoute.setGuide(route.getGuide());
             detailPath.setDriveRoute(driveRoute);
             detailPath.setDistance(route.getSummary().getDistance());
             detailPath.setSectionTime(millToMinute(route.getSummary().getDuration()));
@@ -554,7 +551,10 @@ public class RouteServiceImpl implements RouteService {
         driveRoute.setPath(route.getPath());
         driveRoute.setGuide(route.getGuide()
                                  .stream()
-                                 .peek(x -> x.setDuration(millToMinute(x.getDuration())))
+                                 .peek(x -> {
+                                     Integer min = millToMinute(x.getDuration());
+                                     x.setDuration(min);
+                                 })
                                  .collect(Collectors.toList()));
         driveRoute.setStart(route.getSummary().getStart());
         driveRoute.setGoal(route.getSummary().getGoal());

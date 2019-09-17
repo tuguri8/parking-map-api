@@ -1,11 +1,13 @@
 package com.bamplee.chomi.api.datatool;
 
+import com.bamplee.chomi.api.datatool.airkorea.AirkoreaClient;
 import com.bamplee.chomi.api.datatool.naver.NaverClientInterceptor;
 import com.bamplee.chomi.api.datatool.naver.NaverMapsClient;
 import com.bamplee.chomi.api.datatool.odsay.OdSayClient;
 import com.bamplee.chomi.api.datatool.openweathermap.OpenWeatherMapClient;
 import com.bamplee.chomi.api.datatool.seoul.SeoulOpenApiClient;
 import com.bamplee.chomi.api.datatool.seoul.SeoulSWOpenApiClient;
+import com.bamplee.chomi.api.datatool.sk.SkClient;
 import com.bamplee.chomi.api.datatool.tmoney.TMoneyOpenApiClient;
 import com.bamplee.chomi.api.datatool.tmoney.TMoneyOpenApiClientInterceptor;
 import feign.Feign;
@@ -81,5 +83,26 @@ public class DataToolConfig {
                     .retryer(new Retryer.Default())
                     .target(OpenWeatherMapClient.class, "openweathermap");
     }
+
+    @Bean
+    public SkClient SkClient() {
+        return Feign.builder()
+                    .contract(new SpringMvcContract())
+                    .retryer(new Retryer.Default())
+                    .target(SkClient.class, "sk-client");
+    }
+
+    @Bean
+    public AirkoreaClient AirkoreaClient() {
+        return Feign.builder()
+                    .decoder(new JAXBDecoder(new JAXBContextFactory.Builder()
+                                                 .withMarshallerJAXBEncoding(UTF_8)
+                                                 .build()))
+                    .contract(new SpringMvcContract())
+                    .retryer(new Retryer.Default())
+                    .target(AirkoreaClient.class, "airkorea-client");
+    }
+
+
 
 }

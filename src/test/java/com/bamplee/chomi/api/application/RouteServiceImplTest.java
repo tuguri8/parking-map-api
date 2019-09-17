@@ -12,8 +12,8 @@ public class RouteServiceImplTest {
     @Autowired
     RouteService routeService;
 
-    @Test
-    public void route() {
-        routeService.route("127.1058342", "37.359708", "126.9573151", "37.4962518");
-    }
+//    @Test
+//    public void route() {
+//        routeService.route("127.1058342", "37.359708", "126.9573151", "37.4962518");
+//    }
 }

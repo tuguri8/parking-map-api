@@ -38,7 +38,7 @@ public class V2RouteResponse {
         private Integer tollFare;
         private Integer fuelPrice;
         private List<Double[]> path;
-        private List<NaverMapsDirectionDrivingResponse.Route.Guide> guide;
+        private List<Guide> guide;
 
         public NaverMapsDirectionDrivingResponse.Route.Summary.Start getStart() {
             return start;
@@ -96,12 +96,42 @@ public class V2RouteResponse {
             this.path = path;
         }
 
-        public List<NaverMapsDirectionDrivingResponse.Route.Guide> getGuide() {
+        public List<Guide> getGuide() {
             return guide;
         }
 
-        public void setGuide(List<NaverMapsDirectionDrivingResponse.Route.Guide> guide) {
+        public void setGuide(List<Guide> guide) {
             this.guide = guide;
+        }
+
+        public static class Guide {
+            private String instructions;
+            private Integer distance;
+            private Integer duration;
+
+            public String getInstructions() {
+                return instructions;
+            }
+
+            public void setInstructions(String instructions) {
+                this.instructions = instructions;
+            }
+
+            public Integer getDistance() {
+                return distance;
+            }
+
+            public void setDistance(Integer distance) {
+                this.distance = distance;
+            }
+
+            public Integer getDuration() {
+                return duration;
+            }
+
+            public void setDuration(Integer duration) {
+                this.duration = duration;
+            }
         }
     }
 
@@ -567,7 +597,7 @@ public class V2RouteResponse {
 
                 public static class DriveRoute {
                     private List<Double[]> path;
-                    private List<NaverMapsDirectionDrivingResponse.Route.Guide> guide;
+                    private List<V2RouteResponse.DriveRoute.Guide> guide;
 
                     public List<Double[]> getPath() {
                         return path;
@@ -577,11 +607,11 @@ public class V2RouteResponse {
                         this.path = path;
                     }
 
-                    public List<NaverMapsDirectionDrivingResponse.Route.Guide> getGuide() {
+                    public List<V2RouteResponse.DriveRoute.Guide> getGuide() {
                         return guide;
                     }
 
-                    public void setGuide(List<NaverMapsDirectionDrivingResponse.Route.Guide> guide) {
+                    public void setGuide(List<V2RouteResponse.DriveRoute.Guide> guide) {
                         this.guide = guide;
                     }
                 }

@@ -1,9 +1,8 @@
-package com.bamplee.chomi.api.application;
+package com.bamplee.chomi.api.interfaces.place.dto.response;
 
+import com.bamplee.chomi.api.application.RouteResponse;
 import com.bamplee.chomi.api.datatool.naver.dto.NaverMapsDirectionDrivingResponse;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse;
-import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse.Result.Info;
-import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse.Result.Path.SubPath;
 import com.bamplee.chomi.api.datatool.openweathermap.dto.ForecastResponse;
 import com.bamplee.chomi.api.datatool.seoul.dto.ForecastWarningResponse;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.BikeParkingInfo;
@@ -11,27 +10,9 @@ import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
 
 import java.util.List;
 
-public class RouteResponse {
-    private ForecastWarningResponse.Data.Row forecastWarning;
-    private ForecastResponse.Item forecast;
+public class V2RouteResponse {
     private DriveRoute driveRoute;
     private List<Path> pathList;
-
-    public ForecastWarningResponse.Data.Row getForecastWarning() {
-        return forecastWarning;
-    }
-
-    public void setForecastWarning(ForecastWarningResponse.Data.Row forecastWarning) {
-        this.forecastWarning = forecastWarning;
-    }
-
-    public ForecastResponse.Item getForecast() {
-        return forecast;
-    }
-
-    public void setForecast(ForecastResponse.Item forecast) {
-        this.forecast = forecast;
-    }
 
     public DriveRoute getDriveRoute() {
         return driveRoute;
@@ -57,7 +38,7 @@ public class RouteResponse {
         private Integer tollFare;
         private Integer fuelPrice;
         private List<Double[]> path;
-        private List<NaverMapsDirectionDrivingResponse.Route.Guide> guide;
+        private List<Guide> guide;
 
         public NaverMapsDirectionDrivingResponse.Route.Summary.Start getStart() {
             return start;
@@ -115,24 +96,48 @@ public class RouteResponse {
             this.path = path;
         }
 
-        public List<NaverMapsDirectionDrivingResponse.Route.Guide> getGuide() {
+        public List<Guide> getGuide() {
             return guide;
         }
 
-        public void setGuide(List<NaverMapsDirectionDrivingResponse.Route.Guide> guide) {
+        public void setGuide(List<Guide> guide) {
             this.guide = guide;
+        }
+
+        public static class Guide {
+            private String instructions;
+            private Integer distance;
+            private Integer duration;
+
+            public String getInstructions() {
+                return instructions;
+            }
+
+            public void setInstructions(String instructions) {
+                this.instructions = instructions;
+            }
+
+            public Integer getDistance() {
+                return distance;
+            }
+
+            public void setDistance(Integer distance) {
+                this.distance = distance;
+            }
+
+            public Integer getDuration() {
+                return duration;
+            }
+
+            public void setDuration(Integer duration) {
+                this.duration = duration;
+            }
         }
     }
 
     public static class Path {
-        private Boolean useBus;
-        private Boolean useSubway;
-        private Boolean useBike;
-        private Boolean useCar;
-        private Integer pathType;
         private Summary summary;
         private Detail detail;
-        private List<SubPathInfo> subPathList;
         private Info info;
 
         public Summary getSummary() {
@@ -151,54 +156,6 @@ public class RouteResponse {
             this.detail = detail;
         }
 
-        public Boolean getUseBus() {
-            return useBus;
-        }
-
-        public void setUseBus(Boolean useBus) {
-            this.useBus = useBus;
-        }
-
-        public Boolean getUseSubway() {
-            return useSubway;
-        }
-
-        public void setUseSubway(Boolean useSubway) {
-            this.useSubway = useSubway;
-        }
-
-        public Boolean getUseBike() {
-            return useBike;
-        }
-
-        public void setUseBike(Boolean useBike) {
-            this.useBike = useBike;
-        }
-
-        public Boolean getUseCar() {
-            return useCar;
-        }
-
-        public void setUseCar(Boolean useCar) {
-            this.useCar = useCar;
-        }
-
-        public Integer getPathType() {
-            return pathType;
-        }
-
-        public void setPathType(Integer pathType) {
-            this.pathType = pathType;
-        }
-
-        public List<SubPathInfo> getSubPathList() {
-            return subPathList;
-        }
-
-        public void setSubPathList(List<SubPathInfo> subPathList) {
-            this.subPathList = subPathList;
-        }
-
         public Info getInfo() {
             return info;
         }
@@ -207,12 +164,124 @@ public class RouteResponse {
             this.info = info;
         }
 
+        public static class Info {
+            // 요금
+            private Integer payment;
+            // 버스 환승 카운트
+            private Integer busTransitCount;
+            // 지하철 환승 카운트
+            private Integer subwayTransitCount;
+            // 버스 정류장 합
+            private Integer busStationCount;
+            // 지하철 정류장 합
+            private Integer subwayStationCount;
+            private Integer totalStationCount;
+            // 총 소요시간
+            private Integer totalTime;
+            // 총 도보 이동 거리
+            private Integer totalWalk;
+            // 도보를 제외한 총 이동 거리
+            private Integer trafficDistance;
+            // 총 거리
+            private Integer totalDistance;
+            // 총 도보 시간
+            private Integer totalWalkTime;
+
+            public Integer getPayment() {
+                return payment;
+            }
+
+            public void setPayment(Integer payment) {
+                this.payment = payment;
+            }
+
+            public Integer getBusTransitCount() {
+                return busTransitCount;
+            }
+
+            public void setBusTransitCount(Integer busTransitCount) {
+                this.busTransitCount = busTransitCount;
+            }
+
+            public Integer getSubwayTransitCount() {
+                return subwayTransitCount;
+            }
+
+            public void setSubwayTransitCount(Integer subwayTransitCount) {
+                this.subwayTransitCount = subwayTransitCount;
+            }
+
+            public Integer getBusStationCount() {
+                return busStationCount;
+            }
+
+            public void setBusStationCount(Integer busStationCount) {
+                this.busStationCount = busStationCount;
+            }
+
+            public Integer getSubwayStationCount() {
+                return subwayStationCount;
+            }
+
+            public void setSubwayStationCount(Integer subwayStationCount) {
+                this.subwayStationCount = subwayStationCount;
+            }
+
+            public Integer getTotalStationCount() {
+                return totalStationCount;
+            }
+
+            public void setTotalStationCount(Integer totalStationCount) {
+                this.totalStationCount = totalStationCount;
+            }
+
+            public Integer getTotalTime() {
+                return totalTime;
+            }
+
+            public void setTotalTime(Integer totalTime) {
+                this.totalTime = totalTime;
+            }
+
+            public Integer getTotalWalk() {
+                return totalWalk;
+            }
+
+            public void setTotalWalk(Integer totalWalk) {
+                this.totalWalk = totalWalk;
+            }
+
+            public Integer getTrafficDistance() {
+                return trafficDistance;
+            }
+
+            public void setTrafficDistance(Integer trafficDistance) {
+                this.trafficDistance = trafficDistance;
+            }
+
+            public Integer getTotalDistance() {
+                return totalDistance;
+            }
+
+            public void setTotalDistance(Integer totalDistance) {
+                this.totalDistance = totalDistance;
+            }
+
+            public Integer getTotalWalkTime() {
+                return totalWalkTime;
+            }
+
+            public void setTotalWalkTime(Integer totalWalkTime) {
+                this.totalWalkTime = totalWalkTime;
+            }
+        }
+
         public static class Summary {
             // 차로 이동 시 걸리는 시간
             private Integer driveTime;
             // 차로 이동 시 가격(유류비)
             private Integer drivePrice;
-            // 총 걸린 시간
+            //총 걸린 시간
             private Integer totalTime;
             // 총 금액
             private Integer totalPrice;
@@ -362,26 +431,8 @@ public class RouteResponse {
 
         public static class Detail {
             private List<DetailPath> detailPathList;
-            private List<SubPathInfo> subPathList;
-            private Info info;
             // 경유 주차장 정보
             private ParkingInfo parkingInfo;
-
-            public List<SubPathInfo> getSubPathList() {
-                return subPathList;
-            }
-
-            public void setSubPathList(List<SubPathInfo> subPathList) {
-                this.subPathList = subPathList;
-            }
-
-            public Info getInfo() {
-                return info;
-            }
-
-            public void setInfo(Info info) {
-                this.info = info;
-            }
 
             public ParkingInfo getParkingInfo() {
                 return parkingInfo;
@@ -456,11 +507,11 @@ public class RouteResponse {
                     this.sectionTime = sectionTime;
                 }
 
-                public List<SubPath.Lane> getLane() {
+                public List<OdSaySearchPubTransPathResponse.Result.Path.SubPath.Lane> getLane() {
                     return lane;
                 }
 
-                public void setLane(List<SubPath.Lane> lane) {
+                public void setLane(List<OdSaySearchPubTransPathResponse.Result.Path.SubPath.Lane> lane) {
                     this.lane = lane;
                 }
 
@@ -472,11 +523,11 @@ public class RouteResponse {
                     this.stationCount = stationCount;
                 }
 
-                public SubPath.PassStopList getPassStopList() {
+                public OdSaySearchPubTransPathResponse.Result.Path.SubPath.PassStopList getPassStopList() {
                     return passStopList;
                 }
 
-                public void setPassStopList(SubPath.PassStopList passStopList) {
+                public void setPassStopList(OdSaySearchPubTransPathResponse.Result.Path.SubPath.PassStopList passStopList) {
                     this.passStopList = passStopList;
                 }
 
@@ -546,7 +597,7 @@ public class RouteResponse {
 
                 public static class DriveRoute {
                     private List<Double[]> path;
-                    private List<NaverMapsDirectionDrivingResponse.Route.Guide> guide;
+                    private List<V2RouteResponse.DriveRoute.Guide> guide;
 
                     public List<Double[]> getPath() {
                         return path;
@@ -556,11 +607,11 @@ public class RouteResponse {
                         this.path = path;
                     }
 
-                    public List<NaverMapsDirectionDrivingResponse.Route.Guide> getGuide() {
+                    public List<V2RouteResponse.DriveRoute.Guide> getGuide() {
                         return guide;
                     }
 
-                    public void setGuide(List<NaverMapsDirectionDrivingResponse.Route.Guide> guide) {
+                    public void setGuide(List<V2RouteResponse.DriveRoute.Guide> guide) {
                         this.guide = guide;
                     }
                 }
@@ -568,15 +619,14 @@ public class RouteResponse {
         }
 
         public static class SubPathInfo {
-            private SubPath subPath;
+            private OdSaySearchPubTransPathResponse.Result.Path.SubPath subPath;
             private ParkingRouteInfo parkingRouteInfo;
-            private BikeParkingRouteInfo bikeParkingRouteInfo;
 
-            public SubPath getSubPath() {
+            public OdSaySearchPubTransPathResponse.Result.Path.SubPath getSubPath() {
                 return subPath;
             }
 
-            public void setSubPath(SubPath subPath) {
+            public void setSubPath(OdSaySearchPubTransPathResponse.Result.Path.SubPath subPath) {
                 this.subPath = subPath;
             }
 
@@ -586,14 +636,6 @@ public class RouteResponse {
 
             public void setParkingRouteInfo(ParkingRouteInfo parkingRouteInfo) {
                 this.parkingRouteInfo = parkingRouteInfo;
-            }
-
-            public BikeParkingRouteInfo getBikeParkingRouteInfo() {
-                return bikeParkingRouteInfo;
-            }
-
-            public void setBikeParkingRouteInfo(BikeParkingRouteInfo bikeParkingRouteInfo) {
-                this.bikeParkingRouteInfo = bikeParkingRouteInfo;
             }
 
             public static class ParkingRouteInfo {
@@ -644,45 +686,6 @@ public class RouteResponse {
 
                 public void setGuide(List<NaverMapsDirectionDrivingResponse.Route.Guide> guide) {
                     this.guide = guide;
-                }
-            }
-
-            public static class BikeParkingRouteInfo {
-                private Integer totalTime;
-                private NaverMapsDirectionDrivingResponse subPathRoute;
-                private BikeParkingInfo startBikeParkingInfo;
-                private BikeParkingInfo endBikeParkingInfo;
-
-                public Integer getTotalTime() {
-                    return totalTime;
-                }
-
-                public void setTotalTime(Integer totalTime) {
-                    this.totalTime = totalTime;
-                }
-
-                public NaverMapsDirectionDrivingResponse getSubPathRoute() {
-                    return subPathRoute;
-                }
-
-                public void setSubPathRoute(NaverMapsDirectionDrivingResponse subPathRoute) {
-                    this.subPathRoute = subPathRoute;
-                }
-
-                public BikeParkingInfo getStartBikeParkingInfo() {
-                    return startBikeParkingInfo;
-                }
-
-                public void setStartBikeParkingInfo(BikeParkingInfo startBikeParkingInfo) {
-                    this.startBikeParkingInfo = startBikeParkingInfo;
-                }
-
-                public BikeParkingInfo getEndBikeParkingInfo() {
-                    return endBikeParkingInfo;
-                }
-
-                public void setEndBikeParkingInfo(BikeParkingInfo endBikeParkingInfo) {
-                    this.endBikeParkingInfo = endBikeParkingInfo;
                 }
             }
         }

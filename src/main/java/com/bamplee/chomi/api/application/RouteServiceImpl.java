@@ -10,25 +10,24 @@ import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse.Result.Path;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse.Result.Path.SubPath;
 import com.bamplee.chomi.api.datatool.openweathermap.OpenWeatherMapClient;
-import com.bamplee.chomi.api.datatool.openweathermap.dto.ForecastResponse;
 import com.bamplee.chomi.api.datatool.seoul.SeoulOpenApiClient;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.BikeParkingInfo;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
+import com.bamplee.chomi.api.interfaces.place.dto.response.V2RouteResponse;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,29 +42,38 @@ public class RouteServiceImpl implements RouteService {
     @Value("${seoul-openapi.key}")
     String seoulOpenApiKey;
 
+    private static final Logger log = LoggerFactory.getLogger(RouteServiceImpl.class);
+
     private final ParkingSyncService parkingSyncService;
     private final BikeParkingSyncService bikeParkingSyncService;
     private final NaverMapsClient naverMapsClient;
     private final OdSayClient odSayClient;
     private final OpenWeatherMapClient openWeatherMapClient;
     private final SeoulOpenApiClient seoulOpenApiClient;
+    private final ModelMapper modelMapper;
 
     public RouteServiceImpl(ParkingSyncService parkingSyncService,
                             BikeParkingSyncService bikeParkingSyncService,
                             NaverMapsClient naverMapsClient,
                             OdSayClient odSayClient,
                             OpenWeatherMapClient openWeatherMapClient,
-                            SeoulOpenApiClient seoulOpenApiClient) {
+                            SeoulOpenApiClient seoulOpenApiClient, ModelMapper modelMapper) {
         this.parkingSyncService = parkingSyncService;
         this.bikeParkingSyncService = bikeParkingSyncService;
         this.naverMapsClient = naverMapsClient;
         this.odSayClient = odSayClient;
         this.openWeatherMapClient = openWeatherMapClient;
         this.seoulOpenApiClient = seoulOpenApiClient;
+        this.modelMapper = modelMapper;
     }
 
     @Override
-    public RouteResponse route(String departureX, String departureY, String destinationX, String destinationY) {
+    public V2RouteResponse route(String departureX,
+                                 String departureY,
+                                 String destinationX,
+                                 String destinationY,
+                                 String sortType,
+                                 String parkType) {
         // 대중교통 경로부터 찾기
         OdSaySearchPubTransPathResponse searchPubTransPath = this.getSearchPubTransPath(departureX,
                                                                                         departureY,
@@ -108,7 +116,11 @@ public class RouteServiceImpl implements RouteService {
             for (SubPathInfo originSubPathInfo : x.getSubPathList()) {
                 SubPathInfo subPathInfo = new SubPathInfo();
                 SubPath originSubPath = originSubPathInfo.getSubPath();
-                if (originSubPath.getTrafficType() != 3 && !isChecked && !originSubPath.getStartX().equals(originSubPath.getEndX()) && !originSubPath.getStartY().equals(originSubPath.getEndY())) {
+                if (originSubPath.getTrafficType() != 3 && !isChecked && !originSubPath.getStartX()
+                                                                                       .equals(originSubPath.getEndX()) && !originSubPath.getStartY()
+                                                                                                                                         .equals(
+                                                                                                                                             originSubPath
+                                                                                                                                                 .getEndY())) {
                     Optional<ParkingRouteInfo> parkingRouteInfo = this.getParkingRouteInfo(Double.valueOf(departureX),
                                                                                            Double.valueOf(departureY),
                                                                                            originSubPath.getEndX(),
@@ -164,70 +176,11 @@ public class RouteServiceImpl implements RouteService {
             }
         }).collect(Collectors.toList());
 
-        List<RouteResponse.Path> bikeParkingRouteList = pathList.stream().map(x -> {
-            Boolean isChecked = false;
-            RouteResponse.Path path = new RouteResponse.Path();
-            List<SubPathInfo> tempList = Lists.newArrayList();
-            for (RouteResponse.Path.SubPathInfo originSubPathInfo : x.getSubPathList()) {
-                SubPathInfo subPathInfo = new SubPathInfo();
-                SubPath originSubPath = originSubPathInfo.getSubPath();
-                if (originSubPath.getTrafficType() != 3 && !isChecked && !originSubPath.getStartX().equals(originSubPath.getEndX()) && !originSubPath.getStartY().equals(originSubPath.getEndY())) {
-                    Optional<BikeParkingRouteInfo> bikeParkingRouteInfo = this.getBikeParkingRouteInfo(originSubPath.getStartX(),
-                                                                                                       originSubPath.getStartY(),
-                                                                                                       originSubPath.getEndX(),
-                                                                                                       originSubPath.getEndY());
-                    if (bikeParkingRouteInfo.isPresent()) {
-                        subPathInfo.setBikeParkingRouteInfo(bikeParkingRouteInfo.get());
-                        isChecked = true;
-                    }
-                }
-                subPathInfo.setSubPath(originSubPath);
-                tempList.add(subPathInfo);
-            }
-            if (isChecked) {
-                Integer duration = tempList.stream().map(y -> {
-                    if (y.getBikeParkingRouteInfo() == null) {
-                        return y.getSubPath().getSectionTime();
-                    } else {
-                        if (y.getBikeParkingRouteInfo()
-                             .getSubPathRoute().getCode() == 1) {
-                            return 0;
-                        }
-                        Integer sum = (y.getBikeParkingRouteInfo()
-                                        .getSubPathRoute()
-                                        .getRoute()
-                                        .getOrDefault("traoptimal", Lists.newArrayList())
-                                        .get(0)
-                                        .getSummary().getDuration() / 1000) / 40;
-                        y.getBikeParkingRouteInfo().setTotalTime(sum);
-                        return sum;
-                    }
-                }).reduce((a, b) -> (int) a + (int) b).orElse(0);
-                OdSaySearchPubTransPathResponse.Result.Info info = new OdSaySearchPubTransPathResponse.Result.Info();
-                info.setTotalStationCount(x.getInfo().getTotalStationCount());
-                info.setBusStationCount(x.getInfo().getBusStationCount());
-                info.setBusTransitCount(x.getInfo().getBusTransitCount());
-                info.setSubwayStationCount(x.getInfo().getSubwayStationCount());
-                info.setSubwayTransitCount(x.getInfo().getSubwayTransitCount());
-                info.setTotalTime(duration);
-                info.setMapObj(x.getInfo().getMapObj());
-                info.setPayment(x.getInfo().getPayment());
-                path.setUseBus(x.getUseBus());
-                path.setUseSubway(x.getUseSubway());
-                path.setInfo(info);
-                path.setPathType(x.getPathType());
-                path.setSubPathList(tempList.stream().peek(y -> {
-                    if (y.getBikeParkingRouteInfo() != null) {
-                        y.setSubPath(null);
-                    }
-                }).collect(Collectors.toList()));
-                return path;
-            } else {
-                return null;
-            }
-        }).collect(Collectors.toList());
+        String start = departureX + "," + departureY;
+        String goal = destinationX + "," + destinationY;
+        NaverMapsDirectionDrivingResponse directionDrivingResponse = naverMapsClient.direction5Driving(start, goal, "t");
 
-        pathList = Stream.concat(Stream.concat(pathList.stream(), parkingRouteList.stream()), bikeParkingRouteList.stream())
+        pathList = Stream.concat(pathList.stream(), parkingRouteList.stream())
                          .filter(Objects::nonNull)
                          .peek(x -> {
                              x.setUseBus(x.getSubPathList().stream().anyMatch(y -> y.getSubPath() != null && y.getSubPath()
@@ -238,42 +191,164 @@ public class RouteServiceImpl implements RouteService {
                              x.setUseCar(x.getSubPathList().stream().anyMatch(y -> y.getParkingRouteInfo() != null));
                          })
                          .filter(x -> !(!x.getUseBus() && !x.getUseSubway() && !x.getUseBike() && x.getUseCar()))
-                         .filter(x -> x.getUseCar())
+                         .filter(RouteResponse.Path::getUseCar)
+                         .peek(x -> {
+                             SubPathInfo subPathInfo = x.getSubPathList().stream()
+                                                        .filter(y -> y.getParkingRouteInfo() != null)
+                                                        .findFirst().get();
+                             RouteResponse.Path.Summary summary = new RouteResponse.Path.Summary();
+                             summary.setAddRates(subPathInfo.getParkingRouteInfo().getParkingInfo().getAddRates());
+                             summary.setAddTimeRate(subPathInfo.getParkingRouteInfo().getParkingInfo().getAddTimeRate());
+                             summary.setCapacity(subPathInfo.getParkingRouteInfo().getParkingInfo().getCapacity());
+                             summary.setCurParking(subPathInfo.getParkingRouteInfo().getParkingInfo().getCurParking());
+                             summary.setParkingName(subPathInfo.getParkingRouteInfo().getParkingInfo().getParkingName());
+                             summary.setPayNm(subPathInfo.getParkingRouteInfo().getParkingInfo().getPayNm());
+                             summary.setParkingType(subPathInfo.getParkingRouteInfo().getParkingInfo().getParkingType());
+
+                             Double totalTime = Double.valueOf(x.getSubPathList().stream()
+                                                                .map(path -> {
+                                                                    if (path.getSubPath() != null) {
+                                                                        return path.getSubPath().getSectionTime();
+                                                                    }
+                                                                    return path.getParkingRouteInfo().getTotalTime();
+                                                                })
+                                                                .reduce(0, Integer::sum));
+                             List<RouteResponse.Path.Summary.TimeBar> timeBarList = x.getSubPathList().stream()
+                                                                                     .map(this::calTimeBar)
+                                                                                     .peek(timeBar -> {
+                                                                                         Integer length =
+                                                                                             (int) Math.ceil(timeBar.getTime() / totalTime * 21);
+                                                                                         log.info(length.toString());
+                                                                                         timeBar.setLength(length > 2 ? length : 2);
+                                                                                     })
+                                                                                     .collect(Collectors.toList());
+                             summary.setTimeBarList(timeBarList);
+                             summary.setTotalPrice(x.getInfo().getPayment());
+                             summary.setTotalTime(x.getInfo().getTotalTime());
+                             summary.setDriveTime(millToMinute(directionDrivingResponse.getRoute()
+                                                                                       .get("traoptimal")
+                                                                                       .get(0)
+                                                                                       .getSummary()
+                                                                                       .getDuration()));
+                             summary.setDrivePrice(directionDrivingResponse.getRoute()
+                                                                           .get("traoptimal")
+                                                                           .get(0)
+                                                                           .getSummary()
+                                                                           .getFuelPrice() + directionDrivingResponse.getRoute()
+                                                                                                                     .get("traoptimal")
+                                                                                                                     .get(0)
+                                                                                                                     .getSummary()
+                                                                                                                     .getTollFare());
+
+                             RouteResponse.Path.Detail detail = new RouteResponse.Path.Detail();
+                             detail.setParkingInfo(subPathInfo.getParkingRouteInfo().getParkingInfo());
+                             detail.setSubPathList(x.getSubPathList());
+                             List<RouteResponse.Path.Detail.DetailPath> detailPathList = x.getSubPathList()
+                                                                                          .stream()
+                                                                                          .map(y -> transform(y))
+                                                                                          .collect(Collectors.toList());
+                             for (int i = 0; i < detailPathList.size(); i++) {
+                                 if (detailPathList.get(i).getEndName() == null) {
+                                     if (i == 0) {
+                                         detailPathList.get(i).setEndName(summary.getParkingName());
+                                     } else if (i == detailPathList.size() - 1) {
+                                         detailPathList.get(i).setEndName("목적지");
+                                     } else {
+                                         detailPathList.get(i).setEndName(detailPathList.get(i + 1).getStartName());
+                                     }
+                                 }
+                                 if (detailPathList.get(i).getStartName() == null) {
+                                     if (i == 0) {
+                                         detailPathList.get(i).setStartName("출발지");
+                                     } else {
+                                         detailPathList.get(i).setStartName(detailPathList.get(i - 1).getEndName());
+                                     }
+                                 }
+
+                             }
+                             x.getInfo().setTotalWalkTime(timeBarList.stream()
+                                                                     .filter(timeBar -> timeBar.getTrafficType().equals("WALK"))
+                                                                     .map(RouteResponse.Path.Summary.TimeBar::getTime)
+                                                                     .reduce(0, Integer::sum));
+                             x.getInfo().setTotalWalk(detailPathList.stream()
+                                                                    .filter(detailPath -> detailPath.getTrafficType().equals("WALK"))
+                                                                    .map(RouteResponse.Path.Detail.DetailPath::getDistance)
+                                                                    .reduce(0, Integer::sum));
+                             x.getInfo().setTotalDistance(detailPathList.stream()
+                                                                        .map(RouteResponse.Path.Detail.DetailPath::getDistance)
+                                                                        .reduce(0, Integer::sum));
+                             x.getInfo().setTrafficDistance(x.getInfo().getTotalDistance() - x.getInfo().getTotalWalk());
+                             x.getInfo().setBusTransitCount((int) detailPathList.stream()
+                                                                                .filter(detailPath -> detailPath.getTrafficType()
+                                                                                                                .equals("BUS"))
+                                                                                .count());
+                             x.getInfo().setSubwayTransitCount((int) detailPathList.stream()
+                                                                                   .filter(detailPath -> detailPath.getTrafficType()
+                                                                                                                   .equals("SUBWAY"))
+                                                                                   .count());
+                             x.getInfo().setBusStationCount(detailPathList.stream()
+                                                                          .filter(detailPath -> detailPath.getTrafficType().equals("BUS"))
+                                                                          .map(RouteResponse.Path.Detail.DetailPath::getStationCount)
+                                                                          .reduce(0, Integer::sum));
+                             x.getInfo().setSubwayStationCount(detailPathList.stream()
+                                                                             .filter(detailPath -> detailPath.getTrafficType()
+                                                                                                             .equals("SUBWAY"))
+                                                                             .map(RouteResponse.Path.Detail.DetailPath::getStationCount)
+                                                                             .reduce(0, Integer::sum));
+                             x.getInfo().setTotalStationCount(x.getInfo().getBusStationCount() + x.getInfo().getSubwayStationCount());
+                             detail.setInfo(x.getInfo());
+                             detail.setDetailPathList(detailPathList);
+                             x.setSummary(summary);
+                             x.setDetail(detail);
+                         })
                          .collect(Collectors.toList());
-/*
+
         pathList = pathList.stream()
-                           .filter(x -> x.getSubPathList()
-                                         .stream()
-                                         .map(y -> y.getParkingRouteInfoList()
-                                                    .size())
-                                         .reduce(Integer::sum)
-                                         .orElse(0) > 0
-                           )
+                           .filter(x -> {
+                               if (parkType.equalsIgnoreCase("ALL")) {
+                                   return true;
+                               }
+                               return x.getSummary().getParkingType().equalsIgnoreCase(parkType);
+                           })
+                           .sorted((a, b) -> {
+                               if (sortType.equals("time")) {
+                                   return a.getSummary().getTotalTime().compareTo(b.getSummary().getTotalTime());
+                               } else if (sortType.equals("transport")) {
+                                   return (a.getInfo().getBusTransitCount() + a.getInfo().getSubwayTransitCount()) - (b.getInfo()
+                                                                                                                       .getBusTransitCount() + b
+                                       .getInfo()
+                                       .getSubwayTransitCount());
+                               } else if (sortType.equals("price")) {
+                                   return a.getSummary().getTotalPrice().compareTo(b.getSummary().getTotalPrice());
+                               } else if (sortType.equals("walk")) {
+                                   return a.getInfo().getTotalWalkTime().compareTo(b.getInfo().getTotalWalkTime());
+                               }
+                               return 0;
+                           })
                            .collect(Collectors.toList());
-*/
-        String start = departureX + "," + departureY;
-        String goal = destinationX + "," + destinationY;
-        NaverMapsDirectionDrivingResponse directionDrivingResponse = naverMapsClient.direction5Driving(start, goal, "t");
-        ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
+
+//        ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
         RouteResponse routeResponse = new RouteResponse();
+
         routeResponse.setPathList(pathList);
-        routeResponse.setDriveRoute(directionDrivingResponse);
-        Arrays.stream(seoulOpenApiClient.forecastWarningMinuteParticleOfDustService(seoulOpenApiKey, "1", "1000").getData().getRow())
-              .findFirst()
-              .ifPresent(
-                  routeResponse::setForecastWarning);
-        forecast.getList()
-                .stream()
-                .filter(x -> LocalDateTime.now().atZone(ZoneId.of("Asia/Seoul"))
-                                          .isAfter(LocalDateTime.parse(x.getDtTxt(),
-                                                                       DateTimeFormatter.ofPattern(
-                                                                           "yyyy-MM-dd HH:mm:ss").withLocale(Locale.KOREA)).atZone(ZoneId.of("Asia/Seoul"))))
-                .min((a, b) -> b.getDt().compareTo(a.getDt()))
-                .ifPresent(routeResponse::setForecast);
-        if(routeResponse.getForecast() == null) {
-            forecast.getList().stream().min((a, b) -> b.getDt() - a.getDt()).ifPresent(routeResponse::setForecast);
-        }
-        return routeResponse;
+        routeResponse.setDriveRoute(transformDriveRoute(directionDrivingResponse));
+//        Arrays.stream(seoulOpenApiClient.forecastWarningMinuteParticleOfDustService(seoulOpenApiKey, "1", "1000").getData().getRow())
+//              .findFirst()
+//              .ifPresent(
+//                  routeResponse::setForecastWarning);
+//        forecast.getList()
+//                .stream()
+//                .filter(x -> LocalDateTime.now().atZone(ZoneId.of("Asia/Seoul"))
+//                                          .isAfter(LocalDateTime.parse(x.getDtTxt(),
+//                                                                       DateTimeFormatter.ofPattern(
+//                                                                           "yyyy-MM-dd HH:mm:ss").withLocale(Locale.KOREA))
+//                                                                .atZone(ZoneId.of("Asia/Seoul"))))
+//                .min((a, b) -> b.getDt().compareTo(a.getDt()))
+//                .ifPresent(routeResponse::setForecast);
+//        if (routeResponse.getForecast() == null) {
+//            forecast.getList().stream().min((a, b) -> b.getDt() - a.getDt()).ifPresent(routeResponse::setForecast);
+//        }
+        return modelMapper.map(routeResponse, V2RouteResponse.class);
     }
 
     private Optional<BikeParkingRouteInfo> getBikeParkingRouteInfo(Double startX, Double startY, Double endX, Double endY) {
@@ -307,7 +382,7 @@ public class RouteServiceImpl implements RouteService {
             BikeParkingInfo endBikeParkingInfo = endBikeParkingInfoList.stream()
                                                                        .findFirst()
                                                                        .get();
-            if(startBikeParkingInfo.getStationName().equals(endBikeParkingInfo.getStationName())) {
+            if (startBikeParkingInfo.getStationName().equals(endBikeParkingInfo.getStationName())) {
                 return Optional.empty();
             }
             BikeParkingRouteInfo bikeParkingRouteInfo = new BikeParkingRouteInfo();
@@ -433,4 +508,80 @@ public class RouteServiceImpl implements RouteService {
     private static double rad2deg(double rad) {
         return (rad * 180 / Math.PI);
     }
+
+    private RouteResponse.Path.Summary.TimeBar calTimeBar(SubPathInfo subPathInfo) {
+        RouteResponse.Path.Summary.TimeBar timeBar = new RouteResponse.Path.Summary.TimeBar();
+        if (subPathInfo.getSubPath() == null) {
+            timeBar.setLength(subPathInfo.getParkingRouteInfo().getTotalTime());
+            timeBar.setTime(subPathInfo.getParkingRouteInfo().getTotalTime());
+            timeBar.setTrafficType("CAR");
+        } else {
+            timeBar.setLength(subPathInfo.getSubPath().getSectionTime());
+            timeBar.setTime(subPathInfo.getSubPath().getSectionTime());
+            timeBar.setTrafficType(TrafficType.getTrafficTypeByNum(subPathInfo.getSubPath().getTrafficType()).getTrafficTypeName());
+        }
+        return timeBar;
+    }
+
+    private RouteResponse.Path.Detail.DetailPath transform(SubPathInfo subPathInfo) {
+        RouteResponse.Path.Detail.DetailPath detailPath = new RouteResponse.Path.Detail.DetailPath();
+        if (subPathInfo.getSubPath() != null) {
+            detailPath.setTrafficType(TrafficType.getTrafficTypeByNum(subPathInfo.getSubPath().getTrafficType()).getTrafficTypeName());
+            detailPath.setDistance(subPathInfo.getSubPath().getDistance());
+            detailPath.setSectionTime(subPathInfo.getSubPath().getSectionTime());
+            detailPath.setEndName(subPathInfo.getSubPath().getEndName());
+            detailPath.setStartName(subPathInfo.getSubPath().getStartName());
+            detailPath.setLane(subPathInfo.getSubPath().getLane());
+            detailPath.setPassStopList(subPathInfo.getSubPath().getPassStopList());
+            detailPath.setStationCount(subPathInfo.getSubPath().getStationCount());
+            detailPath.setStartX(subPathInfo.getSubPath().getStartX());
+            detailPath.setStartY(subPathInfo.getSubPath().getStartY());
+            detailPath.setEndX(subPathInfo.getSubPath().getEndX());
+            detailPath.setEndY(subPathInfo.getSubPath().getEndY());
+        } else {
+            RouteResponse.Path.Detail.DetailPath.DriveRoute driveRoute = new RouteResponse.Path.Detail.DetailPath.DriveRoute();
+            NaverMapsDirectionDrivingResponse.Route route = subPathInfo.getParkingRouteInfo()
+                                                                       .getSubPathRoute()
+                                                                       .getRoute()
+                                                                       .get("traoptimal")
+                                                                       .get(0);
+            driveRoute.setPath(route.getPath());
+            driveRoute.setGuide(route.getGuide());
+            detailPath.setDriveRoute(driveRoute);
+            detailPath.setDistance(route.getSummary().getDistance());
+            detailPath.setSectionTime(millToMinute(route.getSummary().getDuration()));
+            detailPath.setFuelPrice(route.getSummary().getFuelPrice());
+            detailPath.setTrafficType("CAR");
+        }
+        return detailPath;
+    }
+
+    private RouteResponse.DriveRoute transformDriveRoute(NaverMapsDirectionDrivingResponse naverMapsDirectionDrivingResponse) {
+        RouteResponse.DriveRoute driveRoute = new RouteResponse.DriveRoute();
+        NaverMapsDirectionDrivingResponse.Route route = naverMapsDirectionDrivingResponse.getRoute()
+                                                                                         .get("traoptimal")
+                                                                                         .get(0);
+
+        driveRoute.setPath(route.getPath());
+        driveRoute.setGuide(route.getGuide()
+                                 .stream()
+                                 .peek(x -> {
+                                     Integer min = millToMinute(x.getDuration());
+                                     x.setDuration(min);
+                                 })
+                                 .collect(Collectors.toList()));
+        driveRoute.setStart(route.getSummary().getStart());
+        driveRoute.setGoal(route.getSummary().getGoal());
+        driveRoute.setTollFare(route.getSummary().getTollFare());
+        driveRoute.setFuelPrice(route.getSummary().getFuelPrice());
+        driveRoute.setDuration(millToMinute(route.getSummary().getDuration()));
+        driveRoute.setDistance(route.getSummary().getDistance());
+
+        return driveRoute;
+    }
+
+    private Integer millToMinute(Integer mill) {
+        return (int) TimeUnit.MILLISECONDS.toMinutes(mill);
+    }
+
 }

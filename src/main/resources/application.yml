@@ -76,3 +76,13 @@ openweathermap:
   key: '{cipher}abd9283410a595c57c1f70e4916010c10ebf63a8af7b677140f7bde17d1c17dce0cabb3a03d26d590c82a4de432eee2feb4118e7c5ba87231b17bc5ad98c3404'
   ribbon:
     MaxAutoRetries: 5
+
+sk-client:
+  key: '{cipher}9972eb197fdabfe5811ffa2d889310948904e4208b372c6558ce40b0a86dd92d705b8f2a82922a02724fdc8413c13c3b1d23c06c7badecaba92c19218009fc2d'
+  ribbon:
+    listOfServers: https://apis.openapi.sk.com
+
+airkorea-client:
+  key: '{cipher}68db71bfe1c10511f70325b522f35a2540730e0cdbc26186b9614f52b5e11dfaccee8e5f99762d632990453041e468b38d277727d3b29a2d69cbd8e5e442b3876d814cfab22ba40ead29ea56967e16137e09e3797189af81199572e747d5a0c9ee8809dfdf192b235b4c1ae47ff5cc2427fb7bd5b537701a132d927f3b6c1b28'
+  ribbon:
+    listOfServers: http://openapi.airkorea.or.kr

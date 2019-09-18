@@ -11,6 +11,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +43,7 @@ public class WeatherServicempl implements WeatherService {
     }
 
     @Override
+    @CacheEvict(value = "areaAir", allEntries = true)
     @Scheduled(cron = "0 29 * * * *")
     public void syncAir() {
         AirkoreaResponse airkoreaResponse = airkoreaClient.getAir(key, "1", "1", "PM10", "HOUR", "WEEK");
@@ -122,10 +125,14 @@ public class WeatherServicempl implements WeatherService {
     @Override
     public WeatherResponse getWeather(String lat, String lon) {
         WeatherHourlyResponse weatherHourlyResponse = skClient.getWeatherSummary(skKey, "2", lat, lon);
-        Air air = airRepository.findTopByAreaNameOrderByIdDesc(weatherHourlyResponse.getWeather().getHourly().get(0).getGrid().getCity())
-                               .orElseThrow(() -> new RuntimeException("미세먼지 정보가 존재하지 않습니다"));
-
+        Air air = getAirFromAreaName(weatherHourlyResponse.getWeather().getHourly().get(0).getGrid().getCity());
         return transform(weatherHourlyResponse, air);
+    }
+
+    @Cacheable(value = "areaAir", key = "#areaName")
+    public Air getAirFromAreaName(String areaName) {
+        return airRepository.findTopByAreaNameOrderByIdDesc(areaName)
+                            .orElseThrow(() -> new RuntimeException("미세먼지 정보가 존재하지 않습니다"));
     }
 
     private String getAirGradeFromValue(Integer airValue) {
@@ -150,11 +157,11 @@ public class WeatherServicempl implements WeatherService {
         weatherResponse.setCity(hourly.getGrid().getCity());
         weatherResponse.setCounty(hourly.getGrid().getCounty());
         weatherResponse.setVillage(hourly.getGrid().getVillage());
-        weatherResponse.setHumidity(hourly.getHumidity());
+        weatherResponse.setHumidity(Double.valueOf(hourly.getHumidity()));
         weatherResponse.setSkyName(hourly.getSky().getName());
-        weatherResponse.setTc(hourly.getTemperature().getTc());
-        weatherResponse.setTmax(hourly.getTemperature().getTmax());
-        weatherResponse.setTmin(hourly.getTemperature().getTmin());
+        weatherResponse.setTc(Math.round(Float.parseFloat(hourly.getTemperature().getTc())));
+        weatherResponse.setTmax(Math.round(Float.parseFloat(hourly.getTemperature().getTmax())));
+        weatherResponse.setTmin(Math.round(Float.parseFloat(hourly.getTemperature().getTmin())));
         return weatherResponse;
     }
 }

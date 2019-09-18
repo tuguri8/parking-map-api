@@ -205,8 +205,22 @@ public class RouteServiceImpl implements RouteService {
                              summary.setPayNm(subPathInfo.getParkingRouteInfo().getParkingInfo().getPayNm());
                              summary.setParkingType(subPathInfo.getParkingRouteInfo().getParkingInfo().getParkingType());
 
+                             Double totalTime = Double.valueOf(x.getSubPathList().stream()
+                                                                .map(path -> {
+                                                                    if (path.getSubPath() != null) {
+                                                                        return path.getSubPath().getSectionTime();
+                                                                    }
+                                                                    return path.getParkingRouteInfo().getTotalTime();
+                                                                })
+                                                                .reduce(0, Integer::sum));
                              List<RouteResponse.Path.Summary.TimeBar> timeBarList = x.getSubPathList().stream()
                                                                                      .map(this::calTimeBar)
+                                                                                     .peek(timeBar -> {
+                                                                                         Integer length =
+                                                                                             (int) Math.ceil(timeBar.getTime() / totalTime * 21);
+                                                                                         log.info(length.toString());
+                                                                                         timeBar.setLength(length > 2 ? length : 2);
+                                                                                     })
                                                                                      .collect(Collectors.toList());
                              summary.setTimeBarList(timeBarList);
                              summary.setTotalPrice(x.getInfo().getPayment());

@@ -5,10 +5,10 @@ public class WeatherResponse {
     private String village;
     private String city;
     private String skyName;
-    private String tc;
-    private String tmax;
-    private String tmin;
-    private String humidity;
+    private Integer tc;
+    private Integer tmax;
+    private Integer tmin;
+    private Double humidity;
     private Integer airValue;
     private String airGrade;
     private String itemCode;
@@ -45,35 +45,35 @@ public class WeatherResponse {
         this.skyName = skyName;
     }
 
-    public String getTc() {
+    public Integer getTc() {
         return tc;
     }
 
-    public void setTc(String tc) {
+    public void setTc(Integer tc) {
         this.tc = tc;
     }
 
-    public String getTmax() {
+    public Integer getTmax() {
         return tmax;
     }
 
-    public void setTmax(String tmax) {
+    public void setTmax(Integer tmax) {
         this.tmax = tmax;
     }
 
-    public String getTmin() {
+    public Integer getTmin() {
         return tmin;
     }
 
-    public void setTmin(String tmin) {
+    public void setTmin(Integer tmin) {
         this.tmin = tmin;
     }
 
-    public String getHumidity() {
+    public Double getHumidity() {
         return humidity;
     }
 
-    public void setHumidity(String humidity) {
+    public void setHumidity(Double humidity) {
         this.humidity = humidity;
     }
 

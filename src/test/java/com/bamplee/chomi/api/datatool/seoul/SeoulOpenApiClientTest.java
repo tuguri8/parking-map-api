@@ -64,10 +64,10 @@ public class SeoulOpenApiClientTest {
         System.out.println(stringObjectMap.toString());
     }
 
-    @Test
-    public void realTimeWeatherObserveInfo() {
-        String yyyyMMddhh = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddhh"));
-        Map<String,Object> result = seoulOpenApiClient.realTimeWeatherObserveInfo(key, "1", "1000", yyyyMMddhh);
-        System.out.println(result.toString());
-    }
+//    @Test
+//    public void realTimeWeatherObserveInfo() {
+//        String yyyyMMddhh = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddhh"));
+//        Map<String,Object> result = seoulOpenApiClient.realTimeWeatherObserveInfo(key, "1", "1000", yyyyMMddhh);
+//        System.out.println(result.toString());
+//    }
 }

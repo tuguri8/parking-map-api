@@ -6,6 +6,7 @@ import com.bamplee.chomi.api.datatool.naver.dto.NaverMapsSearchPlacesResponse;
 import com.bamplee.chomi.api.datatool.odsay.OdSayClient;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSayLoadLaneResponse;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSaySearchPubTransPathResponse;
+import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;

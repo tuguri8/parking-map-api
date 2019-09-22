@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +83,11 @@ public class ParkingSyncServiceImpl implements ParkingSyncService {
     public List<ParkingInfo> getParkingInfoList() {
         System.out.println("getParkingInfoList cache");
         return parkingInfoRepository.findAll();
+    }
+
+    @Override
+    public ParkingInfo getParkingInfo(String parkingCode) {
+        return parkingInfoRepository.findByParkingCode(parkingCode).orElseThrow(() -> new RuntimeException("주차장 정보가 존재하지 않습니다"));
     }
 
     @CacheEvict(value = "getParkingInfoList")

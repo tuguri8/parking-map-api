@@ -1,11 +1,13 @@
 package com.bamplee.chomi.api.interfaces.place;
 
 import com.bamplee.chomi.api.application.MapService;
+import com.bamplee.chomi.api.application.ParkingSyncService;
 import com.bamplee.chomi.api.application.RouteService;
 import com.bamplee.chomi.api.application.WeatherResponse;
 import com.bamplee.chomi.api.application.WeatherService;
 import com.bamplee.chomi.api.datatool.naver.dto.NaverMapsSearchPlacesResponse;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSayLoadLaneResponse;
+import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
 import com.bamplee.chomi.api.interfaces.place.dto.response.V2RouteResponse;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -21,11 +23,16 @@ public class MapController {
     private final MapService mapService;
     private final RouteService routeService;
     private final WeatherService weatherService;
+    private final ParkingSyncService parkingSyncService;
 
-    public MapController(MapService mapService, RouteService routeService, WeatherService weatherService) {
+    public MapController(MapService mapService,
+                         RouteService routeService,
+                         WeatherService weatherService,
+                         ParkingSyncService parkingSyncService) {
         this.mapService = mapService;
         this.routeService = routeService;
         this.weatherService = weatherService;
+        this.parkingSyncService = parkingSyncService;
     }
 
     @GetMapping("search")
@@ -57,5 +64,10 @@ public class MapController {
     public WeatherResponse weather(@RequestParam("lat") String lat,
                                    @RequestParam("lon") String lon) {
         return weatherService.getWeather(lat, lon);
+    }
+
+    @GetMapping("parking")
+    public ParkingInfo parking(@RequestParam("code") String parkingCode) {
+        return parkingSyncService.getParkingInfo(parkingCode);
     }
 }

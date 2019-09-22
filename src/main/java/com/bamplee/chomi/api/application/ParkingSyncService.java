@@ -6,6 +6,10 @@ import java.util.List;
 
 public interface ParkingSyncService {
     void syncParkingInfoList();
+
     void clearParkingInfoCache();
+
     List<ParkingInfo> getParkingInfoList();
+
+    ParkingInfo getParkingInfo(String parkingCode);
 }

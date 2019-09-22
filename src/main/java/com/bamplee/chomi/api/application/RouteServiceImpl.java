@@ -218,7 +218,6 @@ public class RouteServiceImpl implements RouteService {
                                                                                      .peek(timeBar -> {
                                                                                          Integer length =
                                                                                              (int) Math.ceil(timeBar.getTime() / totalTime * 21);
-                                                                                         log.info(length.toString());
                                                                                          timeBar.setLength(length > 2 ? length : 2);
                                                                                      })
                                                                                      .collect(Collectors.toList());

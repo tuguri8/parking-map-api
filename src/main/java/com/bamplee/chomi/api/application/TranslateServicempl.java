@@ -5,7 +5,11 @@ import com.bamplee.chomi.api.datatool.papago.dto.PapagoRequest;
 import com.bamplee.chomi.api.datatool.papago.dto.PapagoResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class TranslateServicempl implements TranslateService {
@@ -21,12 +25,13 @@ public class TranslateServicempl implements TranslateService {
         this.modelMapper = modelMapper;
     }
 
+    @Cacheable(value = "translate")
     @Override
     public TranslateResponse translate(String source, String target, String text) {
         PapagoRequest papagoRequest = new PapagoRequest();
         papagoRequest.setSource(source);
         papagoRequest.setTarget(target);
-        papagoRequest.setText(text);
+        papagoRequest.setText(URLDecoder.decode(text, StandardCharsets.UTF_8));
 
         PapagoResponse papagoResponse = papagoClient.translate(id, secret, papagoRequest);
         return modelMapper.map(papagoResponse.getMessage().getResult(), TranslateResponse.class);

@@ -12,10 +12,13 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "papago", url = "https://naveropenapi.apigw.ntruss.com", fallback = PapagoFallbackFactory.class)
 public interface PapagoClient {
     @PostMapping("nmt/v1/translation")
-    PapagoResponse translate(@RequestBody PapagoRequest papagoRequest);
+    PapagoResponse translate(@RequestHeader(value = "X-NCP-APIGW-API-KEY-ID") String id,
+                             @RequestHeader(value = "X-NCP-APIGW-API-KEY") String secret,
+                             @RequestBody PapagoRequest papagoRequest);
 }

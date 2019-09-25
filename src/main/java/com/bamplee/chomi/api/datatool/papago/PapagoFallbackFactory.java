@@ -27,7 +27,7 @@ public class PapagoFallbackFactory implements LoggingFallbackFactory<PapagoClien
     public static class PapagoClientFallback implements PapagoClient {
 
         @Override
-        public PapagoResponse translate(PapagoRequest papagoRequest) {
+        public PapagoResponse translate(String id, String key, PapagoRequest papagoRequest) {
             return null;
         }
     }

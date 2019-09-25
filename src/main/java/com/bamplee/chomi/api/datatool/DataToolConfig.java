@@ -6,7 +6,6 @@ import com.bamplee.chomi.api.datatool.naver.NaverMapsClient;
 import com.bamplee.chomi.api.datatool.odsay.OdSayClient;
 import com.bamplee.chomi.api.datatool.openweathermap.OpenWeatherMapClient;
 import com.bamplee.chomi.api.datatool.papago.PapagoClient;
-import com.bamplee.chomi.api.datatool.papago.PapagoClientInterceptor;
 import com.bamplee.chomi.api.datatool.seoul.SeoulOpenApiClient;
 import com.bamplee.chomi.api.datatool.seoul.SeoulSWOpenApiClient;
 import com.bamplee.chomi.api.datatool.sk.SkClient;
@@ -72,7 +71,6 @@ public class DataToolConfig {
     @Bean
     public PapagoClient papagoClient() {
         return Feign.builder()
-                    .requestInterceptor(new PapagoClientInterceptor())
                     .contract(new SpringMvcContract())
                     .retryer(new Retryer.Default())
                     .target(PapagoClient.class, "papago");
@@ -114,7 +112,5 @@ public class DataToolConfig {
                     .retryer(new Retryer.Default())
                     .target(AirkoreaClient.class, "airkorea-client");
     }
-
-
 
 }

@@ -3,6 +3,7 @@ package com.bamplee.chomi.api.interfaces.place;
 import com.bamplee.chomi.api.application.MapService;
 import com.bamplee.chomi.api.application.ParkingSyncService;
 import com.bamplee.chomi.api.application.RouteService;
+import com.bamplee.chomi.api.application.TranslateResponse;
 import com.bamplee.chomi.api.application.TranslateService;
 import com.bamplee.chomi.api.application.WeatherResponse;
 import com.bamplee.chomi.api.application.WeatherService;
@@ -76,9 +77,9 @@ public class MapController {
     }
 
     @GetMapping("translate")
-    public PapagoResponse translate(@RequestParam("source") String source,
-                                    @RequestParam("target") String target,
-                                    @RequestParam("text") String text) {
+    public TranslateResponse translate(@RequestParam("source") String source,
+                                       @RequestParam("target") String target,
+                                       @RequestParam("text") String text) {
         return translateService.translate(source, target, text);
     }
 }

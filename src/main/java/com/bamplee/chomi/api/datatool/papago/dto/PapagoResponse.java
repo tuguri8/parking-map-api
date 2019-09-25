@@ -1,31 +1,58 @@
 package com.bamplee.chomi.api.datatool.papago.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 public class PapagoResponse {
-    private String srcLangType;
-    private String tarLangType;
-    private String translatedText;
+    private Message message;
 
-    public String getSrcLangType() {
-        return srcLangType;
+    public Message getMessage() {
+        return message;
     }
 
-    public void setSrcLangType(String srcLangType) {
-        this.srcLangType = srcLangType;
+    public void setMessage(Message message) {
+        this.message = message;
     }
 
-    public String getTarLangType() {
-        return tarLangType;
-    }
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Message {
+        private Result result;
 
-    public void setTarLangType(String tarLangType) {
-        this.tarLangType = tarLangType;
-    }
+        public Result getResult() {
+            return result;
+        }
 
-    public String getTranslatedText() {
-        return translatedText;
-    }
+        public void setResult(Result result) {
+            this.result = result;
+        }
 
-    public void setTranslatedText(String translatedText) {
-        this.translatedText = translatedText;
+        public static class Result {
+            private String srcLangType;
+            private String tarLangType;
+            private String translatedText;
+
+            public String getSrcLangType() {
+                return srcLangType;
+            }
+
+            public void setSrcLangType(String srcLangType) {
+                this.srcLangType = srcLangType;
+            }
+
+            public String getTarLangType() {
+                return tarLangType;
+            }
+
+            public void setTarLangType(String tarLangType) {
+                this.tarLangType = tarLangType;
+            }
+
+            public String getTranslatedText() {
+                return translatedText;
+            }
+
+            public void setTranslatedText(String translatedText) {
+                this.translatedText = translatedText;
+            }
+        }
     }
 }

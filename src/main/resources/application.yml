@@ -66,6 +66,13 @@ naver-maps:
     IsSecure: true
     MaxAutoRetries: 5
 
+papago:
+  id: '{cipher}05255ec25b5672cc3e4f221956c499ff7dc2ee0b9793d0e25ef1608a71bf17e3'
+  secret: '{cipher}914b27f91afc9793afd7a25966707c7cd3ed6af24dbe2713179b91ee3b012a04725404d0952e6b2fe90c69a51975b941f32964750f9c527746b1b0b18629701c'
+  ribbon:
+    IsSecure: true
+    MaxAutoRetries: 5
+
 odsay:
   key: '{cipher}ae078e0e2a988e413fd787b6b18c5dd50d8c5f23f152d1ccfeb609330b9a1de975e745d4de8b68ee4e1c1e52fb33ec4f15404a585f5fd1b84e1137c42d891a9b'
   ribbon:

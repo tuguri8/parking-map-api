@@ -3,10 +3,12 @@ package com.bamplee.chomi.api.interfaces.place;
 import com.bamplee.chomi.api.application.MapService;
 import com.bamplee.chomi.api.application.ParkingSyncService;
 import com.bamplee.chomi.api.application.RouteService;
+import com.bamplee.chomi.api.application.TranslateService;
 import com.bamplee.chomi.api.application.WeatherResponse;
 import com.bamplee.chomi.api.application.WeatherService;
 import com.bamplee.chomi.api.datatool.naver.dto.NaverMapsSearchPlacesResponse;
 import com.bamplee.chomi.api.datatool.odsay.dto.OdSayLoadLaneResponse;
+import com.bamplee.chomi.api.datatool.papago.dto.PapagoResponse;
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
 import com.bamplee.chomi.api.interfaces.place.dto.response.V2RouteResponse;
 import org.springframework.http.MediaType;
@@ -24,15 +26,17 @@ public class MapController {
     private final RouteService routeService;
     private final WeatherService weatherService;
     private final ParkingSyncService parkingSyncService;
+    private final TranslateService translateService;
 
     public MapController(MapService mapService,
                          RouteService routeService,
                          WeatherService weatherService,
-                         ParkingSyncService parkingSyncService) {
+                         ParkingSyncService parkingSyncService, TranslateService translateService) {
         this.mapService = mapService;
         this.routeService = routeService;
         this.weatherService = weatherService;
         this.parkingSyncService = parkingSyncService;
+        this.translateService = translateService;
     }
 
     @GetMapping("search")
@@ -69,5 +73,12 @@ public class MapController {
     @GetMapping("parking")
     public ParkingInfo parking(@RequestParam("code") String parkingCode) {
         return parkingSyncService.getParkingInfo(parkingCode);
+    }
+
+    @GetMapping("translate")
+    public PapagoResponse translate(@RequestParam("source") String source,
+                                    @RequestParam("target") String target,
+                                    @RequestParam("text") String text) {
+        return translateService.translate(source, target, text);
     }
 }

@@ -196,6 +196,11 @@ public class RouteServiceImpl implements RouteService {
                              SubPathInfo subPathInfo = x.getSubPathList().stream()
                                                         .filter(y -> y.getParkingRouteInfo() != null)
                                                         .findFirst().get();
+                             subPathInfo.getParkingRouteInfo()
+                                        .getParkingInfo()
+                                        .setParkingName(changeName(subPathInfo.getParkingRouteInfo()
+                                                                              .getParkingInfo()
+                                                                              .getParkingName()));
                              RouteResponse.Path.Summary summary = new RouteResponse.Path.Summary();
                              summary.setAddRates(subPathInfo.getParkingRouteInfo().getParkingInfo().getAddRates());
                              summary.setAddTimeRate(subPathInfo.getParkingRouteInfo().getParkingInfo().getAddTimeRate());
@@ -251,20 +256,29 @@ public class RouteServiceImpl implements RouteService {
                                      if (i == 0) {
                                          detailPathList.get(i).setEndName(summary.getParkingName());
                                      } else if (i == detailPathList.size() - 1) {
-                                         detailPathList.get(i).setEndName("목적지");
+                                         detailPathList.get(i).setEndName("목적지 도착");
                                      } else {
                                          detailPathList.get(i).setEndName(detailPathList.get(i + 1).getStartName());
                                      }
                                  }
                                  if (detailPathList.get(i).getStartName() == null) {
                                      if (i == 0) {
-                                         detailPathList.get(i).setStartName("출발지");
+                                         detailPathList.get(i).setStartName("승차 후 출발");
                                      } else {
                                          detailPathList.get(i).setStartName(detailPathList.get(i - 1).getEndName());
                                      }
                                  }
 
                              }
+                             detailPathList = detailPathList.stream()
+                                                            .peek(y -> {
+                                                                StringBuffer startNameBuffer = new StringBuffer(y.getStartName());
+                                                                StringBuffer endNameBuffer = new StringBuffer(y.getEndName());
+
+                                                                y.setStartName(startNameBuffer.append(TrafficType.getTrafficTypeByName(y.getTrafficType()).getStartStr()).toString());
+                                                                if(!y.getEndName().equals("목적지 도착")) y.setEndName(endNameBuffer.append(TrafficType.getTrafficTypeByName(y.getTrafficType()).getEndStr()).toString());
+                                                            })
+                                                            .collect(Collectors.toList());
                              x.getInfo().setTotalWalkTime(timeBarList.stream()
                                                                      .filter(timeBar -> timeBar.getTrafficType().equals("WALK"))
                                                                      .map(RouteResponse.Path.Summary.TimeBar::getTime)
@@ -525,11 +539,14 @@ public class RouteServiceImpl implements RouteService {
     private RouteResponse.Path.Detail.DetailPath transform(SubPathInfo subPathInfo) {
         RouteResponse.Path.Detail.DetailPath detailPath = new RouteResponse.Path.Detail.DetailPath();
         if (subPathInfo.getSubPath() != null) {
-            detailPath.setTrafficType(TrafficType.getTrafficTypeByNum(subPathInfo.getSubPath().getTrafficType()).getTrafficTypeName());
+            String trafficTypeName = TrafficType.getTrafficTypeByNum(subPathInfo.getSubPath().getTrafficType()).getTrafficTypeName();
+            String endName = subPathInfo.getSubPath().getEndName();
+            String startName = subPathInfo.getSubPath().getStartName();
+            detailPath.setTrafficType(trafficTypeName);
             detailPath.setDistance(subPathInfo.getSubPath().getDistance());
             detailPath.setSectionTime(subPathInfo.getSubPath().getSectionTime());
-            detailPath.setEndName(subPathInfo.getSubPath().getEndName());
-            detailPath.setStartName(subPathInfo.getSubPath().getStartName());
+            detailPath.setEndName(endName != null ? changeName(endName, trafficTypeName) : null);
+            detailPath.setStartName(startName != null ? changeName(startName, trafficTypeName) : null);
             detailPath.setLane(subPathInfo.getSubPath().getLane());
             detailPath.setPassStopList(subPathInfo.getSubPath().getPassStopList());
             detailPath.setStationCount(subPathInfo.getSubPath().getStationCount());
@@ -577,6 +594,19 @@ public class RouteServiceImpl implements RouteService {
         driveRoute.setDistance(route.getSummary().getDistance());
 
         return driveRoute;
+    }
+
+    private String changeName(String parkingName) {
+        StringBuffer sb = new StringBuffer(parkingName);
+        return sb.indexOf("주차장") > -1 ? sb.toString() : sb.append(" 주차장").toString();
+    }
+
+    private String changeName(String stationName, String trafficType) {
+        return trafficType.equals("BUS") ? stationName + " 정류장" : stationName + "역";
+    }
+
+    private void addStationString(RouteResponse.Path.Detail.DetailPath detailPath) {
+
     }
 
     private Integer millToMinute(Integer mill) {

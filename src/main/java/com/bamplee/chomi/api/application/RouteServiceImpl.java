@@ -274,7 +274,8 @@ public class RouteServiceImpl implements RouteService {
                                                             .peek(y -> {
                                                                 StringBuffer startNameBuffer = new StringBuffer(y.getStartName());
                                                                 StringBuffer endNameBuffer = new StringBuffer(y.getEndName());
-
+                                                                y.setStartSubName(TrafficType.getStartSubName(y));
+                                                                y.setEndSubName(TrafficType.getEndSubName(y));
                                                                 y.setStartName(startNameBuffer.append(TrafficType.getTrafficTypeByName(y.getTrafficType()).getStartStr()).toString());
                                                                 if(!y.getEndName().equals("목적지 도착")) y.setEndName(endNameBuffer.append(TrafficType.getTrafficTypeByName(y.getTrafficType()).getEndStr()).toString());
                                                             })
@@ -563,6 +564,7 @@ public class RouteServiceImpl implements RouteService {
                                                                        .get(0);
             driveRoute.setPath(route.getPath());
             driveRoute.setGuide(route.getGuide());
+            driveRoute.setParkingInfo(subPathInfo.getParkingRouteInfo().getParkingInfo());
             detailPath.setDriveRoute(driveRoute);
             detailPath.setDistance(route.getSummary().getDistance());
             detailPath.setSectionTime(millToMinute(route.getSummary().getDuration()));

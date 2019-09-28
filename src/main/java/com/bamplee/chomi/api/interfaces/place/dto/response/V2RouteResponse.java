@@ -472,6 +472,7 @@ public class V2RouteResponse {
                 private Double startY;
                 // 승차 역명
                 private String startName;
+                private String startSubName;
                 // 도착역 X 좌표
                 private Double endX;
                 // 도착역 Y 좌표
@@ -479,6 +480,23 @@ public class V2RouteResponse {
                 // 도착역 id
                 // 도착역명
                 private String endName;
+                private String endSubName;
+
+                public String getStartSubName() {
+                    return startSubName;
+                }
+
+                public void setStartSubName(String startSubName) {
+                    this.startSubName = startSubName;
+                }
+
+                public String getEndSubName() {
+                    return endSubName;
+                }
+
+                public void setEndSubName(String endSubName) {
+                    this.endSubName = endSubName;
+                }
 
                 public DetailPath() {
                 }

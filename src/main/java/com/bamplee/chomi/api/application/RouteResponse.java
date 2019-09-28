@@ -421,6 +421,7 @@ public class RouteResponse {
                 private Double startY;
                 // 승차 역명
                 private String startName;
+                private String startSubName;
                 // 도착역 X 좌표
                 private Double endX;
                 // 도착역 Y 좌표
@@ -428,8 +429,25 @@ public class RouteResponse {
                 // 도착역 id
                 // 도착역명
                 private String endName;
+                private String endSubName;
 
                 public DetailPath() {
+                }
+
+                public String getStartSubName() {
+                    return startSubName;
+                }
+
+                public void setStartSubName(String startSubName) {
+                    this.startSubName = startSubName;
+                }
+
+                public String getEndSubName() {
+                    return endSubName;
+                }
+
+                public void setEndSubName(String endSubName) {
+                    this.endSubName = endSubName;
                 }
 
                 public String getTrafficType() {
@@ -547,9 +565,18 @@ public class RouteResponse {
                 public static class DriveRoute {
                     private List<Double[]> path;
                     private List<NaverMapsDirectionDrivingResponse.Route.Guide> guide;
+                    private ParkingInfo parkingInfo;
 
                     public List<Double[]> getPath() {
                         return path;
+                    }
+
+                    public ParkingInfo getParkingInfo() {
+                        return parkingInfo;
+                    }
+
+                    public void setParkingInfo(ParkingInfo parkingInfo) {
+                        this.parkingInfo = parkingInfo;
                     }
 
                     public void setPath(List<Double[]> path) {

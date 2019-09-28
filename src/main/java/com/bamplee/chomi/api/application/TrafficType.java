@@ -44,7 +44,7 @@ public enum TrafficType {
                  .append(detailPath.getDriveRoute().getParkingInfo().getCapacity() - detailPath.getDriveRoute()
                                                                                                .getParkingInfo()
                                                                                                .getCurParking())
-                 .append(")면").toString();
+                 .append("면)").toString();
     });
 
     TrafficType(Integer trafficTypeNum,

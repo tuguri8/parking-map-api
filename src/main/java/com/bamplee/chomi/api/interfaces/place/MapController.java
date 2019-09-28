@@ -76,6 +76,11 @@ public class MapController {
         return parkingSyncService.getParkingInfo(parkingCode);
     }
 
+    @GetMapping("sync")
+    public void parkingSync() {
+        parkingSyncService.syncParkingInfoList();
+    }
+
     @GetMapping("translate")
     public TranslateResponse translate(@RequestParam("source") String source,
                                        @RequestParam("target") String target,

@@ -43,7 +43,7 @@ public class RouteServiceImpl implements RouteService {
     String seoulOpenApiKey;
 
     private static final Logger log = LoggerFactory.getLogger(RouteServiceImpl.class);
-
+    private final String PARKING_DETAIL_URL = "http://52.78.160.114/?code=";
     private final ParkingSyncService parkingSyncService;
     private final BikeParkingSyncService bikeParkingSyncService;
     private final NaverMapsClient naverMapsClient;
@@ -226,6 +226,11 @@ public class RouteServiceImpl implements RouteService {
                                                                                          timeBar.setLength(length > 2 ? length : 2);
                                                                                      })
                                                                                      .collect(Collectors.toList());
+                             RouteResponse.Path.Summary.TimeBar parkingTimeBar = new RouteResponse.Path.Summary.TimeBar();
+                             parkingTimeBar.setLength(2);
+                             parkingTimeBar.setTrafficType("PARKING");
+                             parkingTimeBar.setTime(5);
+                             timeBarList.add(1, parkingTimeBar);
                              summary.setTimeBarList(timeBarList);
                              summary.setTotalPrice(x.getInfo().getPayment());
                              summary.setTotalTime(x.getInfo().getTotalTime());
@@ -570,6 +575,7 @@ public class RouteServiceImpl implements RouteService {
             detailPath.setSectionTime(millToMinute(route.getSummary().getDuration()));
             detailPath.setFuelPrice(route.getSummary().getFuelPrice());
             detailPath.setTrafficType("CAR");
+            detailPath.setParkingDetailLink(PARKING_DETAIL_URL + subPathInfo.getParkingRouteInfo().getParkingInfo().getParkingCode());
         }
         return detailPath;
     }

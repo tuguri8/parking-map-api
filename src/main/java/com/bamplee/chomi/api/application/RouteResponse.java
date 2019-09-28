@@ -430,8 +430,17 @@ public class RouteResponse {
                 // 도착역명
                 private String endName;
                 private String endSubName;
+                private String parkingDetailLink;
 
                 public DetailPath() {
+                }
+
+                public String getParkingDetailLink() {
+                    return parkingDetailLink;
+                }
+
+                public void setParkingDetailLink(String parkingDetailLink) {
+                    this.parkingDetailLink = parkingDetailLink;
                 }
 
                 public String getStartSubName() {

@@ -41,7 +41,7 @@ public class ParkingSyncServiceImpl implements ParkingSyncService {
     }
 
     @Transactional
-    @Scheduled(cron = "0 0 0/10 * * *")
+//    @Scheduled(cron = "0 0 0/10 * * *")
     @Override
     public void syncParkingInfoList() {
         int startIndex = 1;

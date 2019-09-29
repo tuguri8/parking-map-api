@@ -333,6 +333,8 @@ public class RouteServiceImpl implements RouteService {
                            .filter(x -> {
                                if (parkType.equalsIgnoreCase("ALL")) {
                                    return true;
+                               } else if (parkType.equalsIgnoreCase("EASY")) {
+                                   return x.getSummary().getCapacity() >= 90;
                                }
                                return x.getSummary().getParkingType().equalsIgnoreCase(parkType);
                            })

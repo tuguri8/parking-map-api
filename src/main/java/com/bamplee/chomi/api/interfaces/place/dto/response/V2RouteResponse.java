@@ -301,6 +301,15 @@ public class V2RouteResponse {
             private Integer addTimeRate;
             // 시간 상태 바 정보
             private List<TimeBar> timeBarList;
+            private Popup popup;
+
+            public Popup getPopup() {
+                return popup;
+            }
+
+            public void setPopup(Popup popup) {
+                this.popup = popup;
+            }
 
             public Integer getDriveTime() {
                 return driveTime;
@@ -396,6 +405,45 @@ public class V2RouteResponse {
 
             public void setTimeBarList(List<TimeBar> timeBarList) {
                 this.timeBarList = timeBarList;
+            }
+
+            public static class Popup {
+                private String timeFullStr;
+                private String timeSummStr;
+                private String moneyFullStr;
+                private String moneySummStr;
+
+                public String getTimeFullStr() {
+                    return timeFullStr;
+                }
+
+                public void setTimeFullStr(String timeFullStr) {
+                    this.timeFullStr = timeFullStr;
+                }
+
+                public String getTimeSummStr() {
+                    return timeSummStr;
+                }
+
+                public void setTimeSummStr(String timeSummStr) {
+                    this.timeSummStr = timeSummStr;
+                }
+
+                public String getMoneyFullStr() {
+                    return moneyFullStr;
+                }
+
+                public void setMoneyFullStr(String moneyFullStr) {
+                    this.moneyFullStr = moneyFullStr;
+                }
+
+                public String getMoneySummStr() {
+                    return moneySummStr;
+                }
+
+                public void setMoneySummStr(String moneySummStr) {
+                    this.moneySummStr = moneySummStr;
+                }
             }
 
             public static class TimeBar {

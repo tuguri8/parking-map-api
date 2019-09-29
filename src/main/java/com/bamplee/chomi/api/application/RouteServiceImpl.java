@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -249,6 +250,7 @@ public class RouteServiceImpl implements RouteService {
                                                                                                                      .getSummary()
                                                                                                                      .getTollFare());
 
+                             summary.setPopup(getPopupData(summary.getDriveTime(), summary.getDrivePrice(), summary.getTotalTime(), summary.getTotalPrice()));
                              RouteResponse.Path.Detail detail = new RouteResponse.Path.Detail();
                              detail.setParkingInfo(subPathInfo.getParkingRouteInfo().getParkingInfo());
                              detail.setSubPathList(x.getSubPathList());
@@ -281,8 +283,13 @@ public class RouteServiceImpl implements RouteService {
                                                                 StringBuffer endNameBuffer = new StringBuffer(y.getEndName());
                                                                 y.setStartSubName(TrafficType.getStartSubName(y));
                                                                 y.setEndSubName(TrafficType.getEndSubName(y));
-                                                                y.setStartName(startNameBuffer.append(TrafficType.getTrafficTypeByName(y.getTrafficType()).getStartStr()).toString());
-                                                                if(!y.getEndName().equals("목적지 도착")) y.setEndName(endNameBuffer.append(TrafficType.getTrafficTypeByName(y.getTrafficType()).getEndStr()).toString());
+                                                                y.setStartName(startNameBuffer.append(TrafficType.getTrafficTypeByName(y.getTrafficType())
+                                                                                                                 .getStartStr())
+                                                                                              .toString());
+                                                                if (!y.getEndName().equals("목적지 도착")) {
+                                                                    y.setEndName(endNameBuffer.append(TrafficType.getTrafficTypeByName(y.getTrafficType())
+                                                                                                                 .getEndStr()).toString());
+                                                                }
                                                             })
                                                             .collect(Collectors.toList());
                              x.getInfo().setTotalWalkTime(timeBarList.stream()
@@ -613,8 +620,24 @@ public class RouteServiceImpl implements RouteService {
         return trafficType.equals("BUS") ? stationName + " 정류장" : stationName + "역";
     }
 
-    private void addStationString(RouteResponse.Path.Detail.DetailPath detailPath) {
-
+    private RouteResponse.Path.Summary.Popup getPopupData(Integer driveTime, Integer drivePrice, Integer totalTime, Integer totalPrice) {
+        DecimalFormat formatter = new DecimalFormat("###,###");
+        StringBuffer timeSummSb = new StringBuffer("총 ");
+        StringBuffer timeFullSb = new StringBuffer("자차(");
+        StringBuffer moneySummSb = new StringBuffer("총 ");
+        StringBuffer moneyFullSb = new StringBuffer("자차(");
+        RouteResponse.Path.Summary.Popup popup = new RouteResponse.Path.Summary.Popup();
+        if (driveTime > totalTime) { popup.setTimeSummStr(timeSummSb.append(driveTime - totalTime).append("분 절약").toString()); }
+        popup.setTimeFullStr(timeFullSb.append(driveTime).append("분) - 추천경로(").append(totalTime).append("분)").toString());
+        if (drivePrice > totalPrice) {
+            popup.setMoneySummStr(moneySummSb.append(formatter.format(drivePrice - totalPrice)).append("원 절약").toString());
+        }
+        popup.setMoneyFullStr(moneyFullSb.append(formatter.format(drivePrice))
+                                         .append("원) - 추천경로(")
+                                         .append(formatter.format(totalPrice))
+                                         .append("원)")
+                                         .toString());
+        return popup;
     }
 
     private Integer millToMinute(Integer mill) {

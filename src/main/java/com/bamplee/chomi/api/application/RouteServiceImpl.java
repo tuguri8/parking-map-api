@@ -180,7 +180,6 @@ public class RouteServiceImpl implements RouteService {
         String start = departureX + "," + departureY;
         String goal = destinationX + "," + destinationY;
         NaverMapsDirectionDrivingResponse directionDrivingResponse = naverMapsClient.direction5Driving(start, goal, "t");
-
         pathList = Stream.concat(pathList.stream(), parkingRouteList.stream())
                          .filter(Objects::nonNull)
                          .peek(x -> {
@@ -191,8 +190,8 @@ public class RouteServiceImpl implements RouteService {
                              x.setUseBike(x.getSubPathList().stream().anyMatch(y -> y.getBikeParkingRouteInfo() != null));
                              x.setUseCar(x.getSubPathList().stream().anyMatch(y -> y.getParkingRouteInfo() != null));
                          })
-                         .filter(x -> !(!x.getUseBus() && !x.getUseSubway() && !x.getUseBike() && x.getUseCar()))
-                         .filter(RouteResponse.Path::getUseCar)
+//                         .filter(x -> !(!x.getUseBus() && !x.getUseSubway() && !x.getUseBike() && x.getUseCar()))
+                         .filter(x -> x.getUseCar() && !x.getUseBike())
                          .peek(x -> {
                              SubPathInfo subPathInfo = x.getSubPathList().stream()
                                                         .filter(y -> y.getParkingRouteInfo() != null)
@@ -362,7 +361,7 @@ public class RouteServiceImpl implements RouteService {
 //        ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
         RouteResponse routeResponse = new RouteResponse();
         pathList = pathList.stream()
-                           .filter(ParkingSyncServiceImpl.distinctByKey(z->z.getSummary().getParkingName()))
+                           .filter(ParkingSyncServiceImpl.distinctByKey(z -> z.getSummary().getParkingName()))
                            .collect(Collectors.toList());
         routeResponse.setPathList(pathList);
 
@@ -438,7 +437,9 @@ public class RouteServiceImpl implements RouteService {
         return parkingInfoList.stream()
                               .filter(parkingInfo -> this.isMatchDongName(parkingInfo,
                                                                           geocode.getResults()[0]
-                                                                              .getRegion()))
+                                                                              .getRegion()) || this.isMatchGunguName(parkingInfo,
+                                                                                                                     geocode.getResults()[0]
+                                                                                                                         .getRegion()))
                               .sorted(Comparator.comparing(x -> distance(
                                   endX,
                                   endY,

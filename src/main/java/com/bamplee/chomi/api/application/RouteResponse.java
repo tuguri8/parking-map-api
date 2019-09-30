@@ -10,6 +10,7 @@ import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.BikeParkingIn
 import com.bamplee.chomi.api.infrastructure.persistence.jpa.entity.ParkingInfo;
 
 import java.util.List;
+import java.util.Objects;
 
 public class RouteResponse {
     private ForecastWarningResponse.Data.Row forecastWarning;
@@ -134,6 +135,27 @@ public class RouteResponse {
         private Detail detail;
         private List<SubPathInfo> subPathList;
         private Info info;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false; }
+            Path path = (Path) o;
+            return Objects.equals(useBus, path.useBus) &&
+                Objects.equals(useSubway, path.useSubway) &&
+                Objects.equals(useBike, path.useBike) &&
+                Objects.equals(useCar, path.useCar) &&
+                Objects.equals(pathType, path.pathType) &&
+                Objects.equals(summary, path.summary) &&
+                Objects.equals(detail, path.detail) &&
+                Objects.equals(subPathList, path.subPathList) &&
+                Objects.equals(info, path.info);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(useBus, useSubway, useBike, useCar, pathType, summary, detail, subPathList, info);
+        }
 
         public Summary getSummary() {
             return summary;

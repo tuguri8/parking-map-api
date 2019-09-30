@@ -239,18 +239,22 @@ public class RouteServiceImpl implements RouteService {
                                                                                        .get("traoptimal")
                                                                                        .get(0)
                                                                                        .getSummary()
-                                                                                       .getDuration()));
-                             summary.setDrivePrice(directionDrivingResponse.getRoute()
-                                                                           .get("traoptimal")
-                                                                           .get(0)
-                                                                           .getSummary()
-                                                                           .getFuelPrice() + directionDrivingResponse.getRoute()
-                                                                                                                     .get("traoptimal")
-                                                                                                                     .get(0)
-                                                                                                                     .getSummary()
-                                                                                                                     .getTollFare());
+                                                                                       .getDuration()) * 2);
+                             summary.setDrivePrice((directionDrivingResponse.getRoute()
+                                                                            .get("traoptimal")
+                                                                            .get(0)
+                                                                            .getSummary()
+                                                                            .getFuelPrice() * 2) + (
+                                 directionDrivingResponse.getRoute()
+                                                         .get("traoptimal")
+                                                         .get(0)
+                                                         .getSummary()
+                                                         .getTollFare() * 2));
 
-                             summary.setPopup(getPopupData(summary.getDriveTime(), summary.getDrivePrice(), summary.getTotalTime(), summary.getTotalPrice()));
+                             summary.setPopup(getPopupData(summary.getDriveTime(),
+                                                           summary.getDrivePrice(),
+                                                           summary.getTotalTime(),
+                                                           summary.getTotalPrice()));
                              RouteResponse.Path.Detail detail = new RouteResponse.Path.Detail();
                              detail.setParkingInfo(subPathInfo.getParkingRouteInfo().getParkingInfo());
                              detail.setSubPathList(x.getSubPathList());
@@ -334,7 +338,7 @@ public class RouteServiceImpl implements RouteService {
                                if (parkType.equalsIgnoreCase("ALL")) {
                                    return true;
                                } else if (parkType.equalsIgnoreCase("EASY")) {
-                                   return x.getSummary().getCapacity() >= 90;
+                                   return x.getSummary().getCapacity() >= 30;
                                }
                                return x.getSummary().getParkingType().equalsIgnoreCase(parkType);
                            })
@@ -357,8 +361,11 @@ public class RouteServiceImpl implements RouteService {
 
 //        ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
         RouteResponse routeResponse = new RouteResponse();
-
+        pathList = pathList.stream()
+                           .filter(ParkingSyncServiceImpl.distinctByKey(z->z.getSummary().getParkingName()))
+                           .collect(Collectors.toList());
         routeResponse.setPathList(pathList);
+
         routeResponse.setDriveRoute(transformDriveRoute(directionDrivingResponse));
 //        Arrays.stream(seoulOpenApiClient.forecastWarningMinuteParticleOfDustService(seoulOpenApiKey, "1", "1000").getData().getRow())
 //              .findFirst()
@@ -605,9 +612,9 @@ public class RouteServiceImpl implements RouteService {
                                  .collect(Collectors.toList()));
         driveRoute.setStart(route.getSummary().getStart());
         driveRoute.setGoal(route.getSummary().getGoal());
-        driveRoute.setTollFare(route.getSummary().getTollFare());
-        driveRoute.setFuelPrice(route.getSummary().getFuelPrice());
-        driveRoute.setDuration(millToMinute(route.getSummary().getDuration()));
+        driveRoute.setTollFare((route.getSummary().getTollFare() * 2));
+        driveRoute.setFuelPrice((route.getSummary().getFuelPrice() * 2));
+        driveRoute.setDuration((millToMinute(route.getSummary().getDuration()) * 2));
         driveRoute.setDistance(route.getSummary().getDistance());
 
         return driveRoute;

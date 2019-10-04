@@ -232,13 +232,19 @@ public class RouteServiceImpl implements RouteService {
                              parkingTimeBar.setTime(5);
                              timeBarList.add(1, parkingTimeBar);
                              summary.setTimeBarList(timeBarList);
-                             summary.setTotalPrice(x.getInfo().getPayment());
+                             summary.setTotalPrice(x.getInfo().getPayment() + subPathInfo.getParkingRouteInfo()
+                                                                                         .getSubPathRoute()
+                                                                                         .getRoute()
+                                                                                         .get("traoptimal")
+                                                                                         .get(0)
+                                                                                         .getSummary()
+                                                                                         .getFuelPrice());
                              summary.setTotalTime(x.getInfo().getTotalTime());
                              summary.setDriveTime(millToMinute(directionDrivingResponse.getRoute()
                                                                                        .get("traoptimal")
                                                                                        .get(0)
                                                                                        .getSummary()
-                                                                                       .getDuration()) * 2);
+                                                                                       .getDuration()));
                              summary.setDrivePrice((directionDrivingResponse.getRoute()
                                                                             .get("traoptimal")
                                                                             .get(0)
@@ -250,10 +256,6 @@ public class RouteServiceImpl implements RouteService {
                                                          .getSummary()
                                                          .getTollFare() * 2));
 
-                             summary.setPopup(getPopupData(summary.getDriveTime(),
-                                                           summary.getDrivePrice(),
-                                                           summary.getTotalTime(),
-                                                           summary.getTotalPrice()));
                              RouteResponse.Path.Detail detail = new RouteResponse.Path.Detail();
                              detail.setParkingInfo(subPathInfo.getParkingRouteInfo().getParkingInfo());
                              detail.setSubPathList(x.getSubPathList());
@@ -360,12 +362,32 @@ public class RouteServiceImpl implements RouteService {
 
 //        ForecastResponse forecast = openWeatherMapClient.forecast(openWeatherApiKey, departureY, departureX);
         RouteResponse routeResponse = new RouteResponse();
+        // 중복 주차장 제거
         pathList = pathList.stream()
                            .filter(ParkingSyncServiceImpl.distinctByKey(z -> z.getSummary().getParkingName()))
                            .collect(Collectors.toList());
+        // 자동차만 이용했을 때의 최종 시간 계산
+        Integer finalDriveTime = pathList.stream()
+                                         .mapToInt(z -> z.getSummary().getTotalTime())
+                                         .max()
+                                         .orElse(millToMinute(directionDrivingResponse.getRoute()
+                                                                                      .get("traoptimal")
+                                                                                      .get(0)
+                                                                                      .getSummary()
+                                                                                      .getDuration())) + ((int) (Math.random() * 15) + 1);
+        // 경로에 최종 자동차 시간 반영, 팝업 데이터 추가
+        pathList = pathList.stream()
+                           .peek(path -> {
+                               path.getSummary().setDriveTime(finalDriveTime);
+                               path.getSummary().setPopup(getPopupData(path.getSummary().getDriveTime(),
+                                                                       path.getSummary().getDrivePrice(),
+                                                                       path.getSummary().getTotalTime(),
+                                                                       path.getSummary().getTotalPrice()));
+                           })
+                           .collect(Collectors.toList());
         routeResponse.setPathList(pathList);
 
-        routeResponse.setDriveRoute(transformDriveRoute(directionDrivingResponse));
+        routeResponse.setDriveRoute(transformDriveRoute(directionDrivingResponse, finalDriveTime));
 //        Arrays.stream(seoulOpenApiClient.forecastWarningMinuteParticleOfDustService(seoulOpenApiKey, "1", "1000").getData().getRow())
 //              .findFirst()
 //              .ifPresent(
@@ -597,7 +619,8 @@ public class RouteServiceImpl implements RouteService {
         return detailPath;
     }
 
-    private RouteResponse.DriveRoute transformDriveRoute(NaverMapsDirectionDrivingResponse naverMapsDirectionDrivingResponse) {
+    private RouteResponse.DriveRoute transformDriveRoute(NaverMapsDirectionDrivingResponse naverMapsDirectionDrivingResponse,
+                                                         Integer finalDriveTime) {
         RouteResponse.DriveRoute driveRoute = new RouteResponse.DriveRoute();
         NaverMapsDirectionDrivingResponse.Route route = naverMapsDirectionDrivingResponse.getRoute()
                                                                                          .get("traoptimal")
@@ -615,7 +638,7 @@ public class RouteServiceImpl implements RouteService {
         driveRoute.setGoal(route.getSummary().getGoal());
         driveRoute.setTollFare((route.getSummary().getTollFare() * 2));
         driveRoute.setFuelPrice((route.getSummary().getFuelPrice() * 2));
-        driveRoute.setDuration((millToMinute(route.getSummary().getDuration()) * 2));
+        driveRoute.setDuration(finalDriveTime);
         driveRoute.setDistance(route.getSummary().getDistance());
 
         return driveRoute;
